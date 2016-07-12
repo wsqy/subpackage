@@ -101,8 +101,11 @@ class SubPackage:
             if not data_loads.get("extend").get("packet_timeout", None):
                 data_loads["extend"]["packet_timeout"] = time.time() + self.log_post_time
             data_loads["extend"]["error_key"] = message
-            redis_object = RedisObj()
-            redis_object.push_task(redis_object.redis_retry_key, data_loads)
+            access = settings.access.capitalize()+"Obj"
+            upload_module = __import__("PacketRequest." + access)
+            up_access= getattr(getattr(upload_module, access), access)
+            push_task = getattr(up_access(), "push_task")
+            push_task(self.redis_retry_key, data_loads)
 
     def get_upload_info(self, filename, notice_url):
         self.upload_subpackage_dict[filename] = [len(upload_config.storageList), notice_url, []]
@@ -134,12 +137,13 @@ class SubPackage:
         filename = conf.get("filename")
         # print filename
         cloud_filename = os.path.join(conf.get("basedir", ""), os.path.basename(filename))
-        if conf.get("DRIVER") == "ks":
-            h_driver = KSUpload(conf)
-        else:
-            h_driver = OSSUpload(conf)
+        driver = conf.get("DRIVER")
+        upload_module = __import__("UploadFile." + driver)
+        up_driver = getattr(getattr(upload_module, driver), driver)
+        h_driver = up_driver(conf)
+        upload_file = getattr(h_driver, "upload_file")
         try:
-            h_driver.upload_file(cloud_filename, filename)
+            upload_file(cloud_filename, filename)
         except Exception, e:
             print e, filename, "失败重传--------"
             # 将文件名封装进这个字典
@@ -153,8 +157,11 @@ class SubPackage:
                 break
             print "开始解任务。。。。。"
             # 获取消息的redis ,并解码成python格式
-            redis_object = RedisObj()
-            data_loads = redis_object.get_task(redis_object.redis_key)
+            access = settings.access.capitalize()+"Obj"
+            upload_module = __import__("PacketRequest." + access)
+            up_access = getattr(getattr(upload_module, access), access)
+            get_task = getattr(up_access(), "get_task")
+            data_loads = get_task(getattr(up_access(), "redis_key"))
             print "开始分包。。。。"
             startTime = time.time()
             response = packet.subpackage(filename=data_loads.get("filename"),
@@ -172,8 +179,11 @@ class SubPackage:
                 # self.sent_log_info(self.alarm_info_format("warning", "been kill"))
                 break
             # 获取消息的redis ,并解码成python格式
-            redis_object = RedisObj()
-            data_loads = redis_object.get_task(redis_object.redis_retry_key)
+            access = settings.access.capitalize()+"Obj"
+            upload_module = __import__("PacketRequest." + access)
+            up_access = getattr(getattr(upload_module, access), access)
+            get_task = getattr(up_access(), "get_task")
+            data_loads = get_task(getattr(up_access(), "redis_retry_key"))
             # filename channel_id channel_version finish_notice_url 如果有
             # 检查是否有超时时间，是否超过半个小时
             error_time = data_loads.get("extend").get("packet_timeout", None)
