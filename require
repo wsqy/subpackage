@@ -1,0 +1,6 @@
+redis
+python-daemon
+gevent
+six
+filechunkio
+oss2
