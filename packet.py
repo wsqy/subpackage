@@ -88,8 +88,10 @@ def make_sub_package_file(filename, channel_id, version_name):
 
 
 def zip_add_file(channel_file, target_file, date=None):
-    # 获得临时文件目录
+    # 获得临时文件目录 
     tempfile_dir = settings.tempfile_dir
+    if not tempfile_dir:
+        tempfile_dir = os.getcwd()
 
     # 添加文件到压缩包
     with zipfile.ZipFile(channel_file, 'a', zipfile.ZIP_DEFLATED) as zip_opt:
@@ -157,7 +159,7 @@ def subpackage(filename=None, channel_id=None, extend=None):
         try:
             version_name = get_apk_version(source_file)
             channel_file = make_sub_package_file(filename, channel_id, version_name)
-            if os.path.exists(channel_file):
+            if False and os.path.exists(channel_file):   # TODO: 如果有强制打包标识，强制打包
                 response.set_status(False)
                 response.set_status_key('HAVEN_SUB')
         except IOError, e:
@@ -179,7 +181,7 @@ def subpackage(filename=None, channel_id=None, extend=None):
         try :
             unpack(channel_file, channel_id, extend, version_name)
         except IOError, e:
-            response.set_status(False)
+            response.set_status(False)   # fixme ,默认为失败
             response.set_status_key('UNKNOWN_ERROR')
             response.set_special_message(e)
             return response

@@ -53,7 +53,7 @@ class OSSUpload(BaseUpload):
         file_part_count = (total_size / part_size) + 1
         upload_id = bucket.init_multipart_upload(cloud_file).upload_id
         parts = []
-        print "开始分片存储%s。。。。。" % file_to_upload
+        print "开始分片存储%s。。。。。" % file_to_upload   # TODO 并发上传
         startTime = time.time()
         with open(file_to_upload, 'rb') as fileobj:
             part_number = 1

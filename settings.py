@@ -15,12 +15,12 @@ message_num = 1
 retry_upload_num =1
 
 # 消息存储方式
-access = "redis"
+task_type = "redis"
 # redis数据库的基本信息
 redis_host = '121.199.34.235'
 redis_port = 6379
 redis_db = 0
-redis_password = "uid"
+redis_auth = "uid"
 redis_key = "6y:apk:subpackage:task"
 redis_retry_key = "6y:apk:subpackage:retrytask"
 redis_sleep_time = 10

@@ -1,0 +1,111 @@
+Redis 数据格式:
+	{
+		'filename': 'fuhaoniuniu',		// root_dir/sdkgame/fuhaoniuniu/fuhaoniuniu.apk
+		'channel_id': 11,
+		'extend': {
+			'channel_version': '1.0',
+		}
+		'finish_notice_url': 'http://xxxx.xxx.com/xxxx.php'		// // 本身打包程序只通知一次, 再丢队列, 让通知程序去多次通知
+	}
+
+失败时push的格式（程序内部的任务，使用者不需要关心）：
+Redis 数据格式:
+	{
+		'filename': 'fuhaoniuniu',		// root_dir/sdkgame/fuhaoniuniu/fuhaoniuniu.apk
+		'channel_id': 11,
+		'extend': {
+			'channel_version': '1.0',
+			‘packet_timeout’：出错时，当前时间的后 log_post_time
+			‘error_key’:出错的简略信息
+		}
+		'finish_notice_url': 'http://xxxx.xxx.com/xxxx.php'		// // 本身打包程序只通知一次, 再丢队列, 让通知程序去多次通知
+	}
+
+	通知结果为: success 时认为成功, miss为包不存在    其他情况均为失败，失败时多次通知
+
+
+    
+
+udp消息日志
+    格式：time.strftime("%Y-%m-%d %H:%M:%S")   level   info
+    级别:
+        notice-----signal检测到SIGHUP事件执行退出
+        waring-----消息发送时报告apk包未找到
+        error------打包失败
+        
+
+        
+
+setting文件：
+    
+    packet_num              # 分包主进程数，推荐3左右
+    
+    retry_packet_num        # 打包失败的尝试进程数，推荐1左右
+    
+    message_num             # 消息通知进程数，推荐1左右 
+    
+    retry_upload_num        # 上传失败的尝试进程数 ，推荐1左右
+
+    task_type               # 消息存储方式  暂时只支持 "redis"
+    
+    # redis的基本信息
+    redis_host              # redis的主机名
+    redis_port              # redis的端口
+    redis_db                # redis的库名
+    redis_redis_auth        # redis的认证方式
+    redis_key               # redis的key值
+    redis_retry_key         # redis的重试key值
+    redis_sleep_time = 10   # 取不到任务时 redis的重试时间
+    
+    
+    status_code（下一版本中需改进）：
+        # 基本的打包状态消息
+
+        #101 打包未进行
+        'NO_READY' : {'statusCode': 101, 'message': "打包未开始"},
+
+        # 201正常
+        'COMPLETE' : {'statusCode': 201, 'message': "打包已完成"},
+
+        #4XX 基本错误类型
+        'ARG_MISS' : {'statusCode': 401, 'message':  "参数不完整，请检查"},
+        'NO_APK': {'statusCode': 402, 'message': "游戏母包不存在"},
+        'HAVEN_SUB': {'statusCode': 403, 'message': "游戏已分包，请勿重复操作"},
+        'WRONG_APK': {'statusCode': 404, 'message': "apk文件不能正常读取"},
+        'COPY_APK_ERROR': {'statusCode': 405, 'message': "无法创建文件,打包失败,请联系管理员"},
+        'PERM_ERROR': {'statusCode': 406, 'message': "无法读取游戏母包, 请设置好访问权限"},
+
+        # 5XX 特殊异常
+        'UNKNOWN_ERROR': {'statusCode': 501, 'message': "UNKNOWN_ERROR"},
+        
+        
+    # 错误日志发送的平台 （使用者不需要关心）
+    UDP_HOST = "218.85.13.145"
+    UDP_PORT = 1414
+
+    
+    log_post_time = # 打包任务出错后将重试log_post_time时间后，发送日志
+
+    
+    sdk_game_path # apk包的根路径
+
+    
+    tempfile_dir # 分包时生成的临时文件路径，如果想在当前文件下生成临时文件，请设置为None
+    
+UploadFile/upload_config文件说明： 
+    storageList可以由使用者配置，storage_config请不要更改
+    storageList = ['oss1', 'ks1'], 
+    # 需要上传的每一个云存储位置，注意每一项须在storage_config中被定义
+    
+    storage_config中每一项是一个字典，字典的键是云存储名，与storageList相对应
+    字典的值又是一个字典，定义如下：
+        "DRIVER": 使用到的存储模块，目前只支持 KSUpload和OSSUpload
+        "AccessKey": 'gmvu0UYj0kwrTOoIIrcp',
+        "SecretKey": '+pekrcxq1qR+oZ69Zahp6+gzYREDuT0TBEeSsy9e',
+        "bucketName":          # bucketName
+        "ENDPOINT": 'ks3-cn-shanghai-internal.ksyun.com',
+        "file_critical_size":  # 超过此阈值，将采用分块上传
+        "file_chunk_size":     # 采用分块上传时，每一块的大小
+        "basedir": "",         # 指定上传到云存储时具体的bucketName下的目录
+    
+

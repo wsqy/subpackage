@@ -77,7 +77,7 @@ class SubPackage:
 
 
     def subpackage_upload_handle(self, response, data_loads):
-        message = response.get_status_key()
+        message = response.get_status_key() # todo  状态和错误分开
         if message == "COMPLETE":
             filename = response.get_filename()
             finish_url = data_loads.get("finish_notice_url")
@@ -88,9 +88,9 @@ class SubPackage:
             if not data_loads.get("extend").get("packet_timeout", None):
                 data_loads["extend"]["packet_timeout"] = time.time() + self.log_post_time
             data_loads["extend"]["error_key"] = message
-            access = settings.access.capitalize()+"Obj"
-            upload_module = __import__("PacketRequest." + access)
-            up_access= getattr(getattr(upload_module, access), access)
+            task_type = settings.task_type.capitalize()+"Obj"
+            upload_module = __import__("PacketRequest." + task_type)
+            up_access= getattr(getattr(upload_module, task_type), task_type)
             push_task = getattr(up_access(), "push_task")
             push_task(getattr(up_access(), "redis_retry_key"), data_loads)
 
@@ -144,9 +144,9 @@ class SubPackage:
                 break
             print "开始解任务。。。。。"
             # 获取消息的redis ,并解码成python格式
-            access = settings.access.capitalize()+"Obj"
-            upload_module = __import__("PacketRequest." + access)
-            up_access = getattr(getattr(upload_module, access), access)
+            task_type = settings.task_type.capitalize()+"Obj"
+            upload_module = __import__("PacketRequest." + task_type)
+            up_access = getattr(getattr(upload_module, task_type), task_type)
             get_task = getattr(up_access(), "get_task")
             data_loads = get_task(getattr(up_access(), "redis_key"))
             print "开始分包。。。。"
@@ -167,9 +167,9 @@ class SubPackage:
                 # sent_log_info(alarm_info_format("warning", "been kill"))
                 break
             # 获取消息的redis ,并解码成python格式
-            access = settings.access.capitalize()+"Obj"
-            upload_module = __import__("PacketRequest." + access)
-            up_access = getattr(getattr(upload_module, access), access)
+            task_type = settings.task_type.capitalize()+"Obj"
+            upload_module = __import__("PacketRequest." + task_type)
+            up_access = getattr(getattr(upload_module, task_type), task_type)
             get_task = getattr(up_access(), "get_task")
             data_loads = get_task(getattr(up_access(), "redis_retry_key"))
             # filename channel_id channel_version finish_notice_url 如果有

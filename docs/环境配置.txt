@@ -1,0 +1,9 @@
+安装方式：
+    1.使用程序提供的集成化的一键安装包，执行 python subpackage_env_deploy.py命令就可以解决所有事情
+    
+    2.由于pyenv下载安装python，很容易被和谐，可以考虑手动安装python2.7环境的方式，然后手动安装所需要的库文件
+        比如：安装靠谱云的sdk,进入requirement文件夹，找到ks3-python-sdk-master.zip解压，
+        进入解压好的文件夹，执行 python setup.py install 安装
+        requirement文件夹中的所有库文件都可以采用此方式安装，但是除了靠谱云的sdk库，其余的库都可以使用pip install +库名的方式安装，为方便安装 我将所需的库写到了 require文件中，可以执行 pip install -r require安装
+        再手动安装 ks3-python-sdk-master即可
+

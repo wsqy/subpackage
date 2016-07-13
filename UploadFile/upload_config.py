@@ -20,7 +20,7 @@ storage_config = {
         "DOMAIN": "http://mogetest.6y.com.cn/",
         "ACCESS_ID": "VPaDmdb3VoNB0k6t",
         "ACCESS_KEY": "jY1CoUcoKamDbaZZUIENIsRjfpTNCI",
-        "ENDPOINT": "oss-cn-hangzhou.aliyuncs.com",
+        "ENDPOINT": "oss-cn-hangzhou-internal.aliyuncs.com",
         "BUCKET": "mogetest",
         "file_chunk_size": 2*1024*1024,
         "file_critical_size": 5*1024*1024,
