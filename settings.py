@@ -14,6 +14,8 @@ message_num = 1
 # 上传失败的尝试进程数
 retry_upload_num =1
 
+# 消息存储方式
+access = "redis"
 # redis数据库的基本信息
 redis_host = '121.199.34.235'
 redis_port = 6379
@@ -53,7 +55,7 @@ UDP_PORT = 1414
 log_post_time = 30*60
 
 # apk包的根路径
-sdk_game_path = None
+sdk_game_path = "apk"
 
 # 分包时生成的临时文件路径
 tempfile_dir = '/tmp'

@@ -12,9 +12,7 @@ import gevent
 import settings
 import packet
 
-from PacketRequest.RedisObj import RedisObj
-from UploadFile.KSUpload import KSUpload
-from UploadFile.OSSUpload import OSSUpload
+from loggingInfoSent import alarm_info_format, sent_log_info
 from UploadFile import upload_config
 import sys
 default_encoding = 'utf-8'
@@ -34,8 +32,6 @@ class SubPackage:
         self.upload_subpackage_dict = {}
         self.is_run = True
         self.log_post_time = settings.log_post_time
-        self.__UDP_host = settings.UDP_HOST
-        self.__UDP_port = settings.UDP_PORT 
 
     def setQuit(self, pid, signal_num):
         self.is_run = False
@@ -52,9 +48,6 @@ class SubPackage:
             gevent_task.append(gevent.spawn(self.get_upload_task))
         gevent.joinall(gevent_task)
 
-    def alarm_info_format(self, level, Info):
-        return "%s\t%s\t%s\n" % (time.strftime("%Y-%m-%d %H:%M:%S"), level, Info)
-
     def finish_message_notice(self, Info_url):
         print "任务完成。。。。"
         return
@@ -65,7 +58,7 @@ class SubPackage:
                 print "消息发送成功"
                 print "上传成功删除文件"
             elif "miss" in response:
-                self.sent_log_info(self.alarm_info_format("notice", "missing"))
+                sent_log_info(alarm_info_format("notice", "missing"))
                 print "miss"
             else:
                 self.message_list.append(Info_url)
@@ -82,12 +75,6 @@ class SubPackage:
             post_data = self.message_list.pop()
             self.finish_message_notice(post_data)
 
-    def sent_log_info(self, data):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        UDPTarget = (self.__UDP_host, self.__UDP_port)
-        print "发送日志"
-        s.sendto(data, UDPTarget)
-        s.close()
 
     def subpackage_upload_handle(self, response, data_loads):
         message = response.get_status_key()
@@ -105,7 +92,7 @@ class SubPackage:
             upload_module = __import__("PacketRequest." + access)
             up_access= getattr(getattr(upload_module, access), access)
             push_task = getattr(up_access(), "push_task")
-            push_task(self.redis_retry_key, data_loads)
+            push_task(getattr(up_access(), "redis_retry_key"), data_loads)
 
     def get_upload_info(self, filename, notice_url):
         self.upload_subpackage_dict[filename] = [len(upload_config.storageList), notice_url, []]
@@ -133,7 +120,7 @@ class SubPackage:
                     self.upload_cloud(conf)
 
     def upload_cloud(self, conf):
-        h_driver = "oss"
+        # h_driver = "oss"
         filename = conf.get("filename")
         # print filename
         cloud_filename = os.path.join(conf.get("basedir", ""), os.path.basename(filename))
@@ -153,7 +140,7 @@ class SubPackage:
     def packet(self):
         while True:
             if not self.is_run:
-                # self.sent_log_info(self.alarm_info_format("warning", "been kill"))
+                # sent_log_info(alarm_info_format("warning", "been kill")) 
                 break
             print "开始解任务。。。。。"
             # 获取消息的redis ,并解码成python格式
@@ -171,12 +158,13 @@ class SubPackage:
             endTime = time.time()
             spendTime = endTime - startTime
             print "subpackage spent %f second." % spendTime
+            print(response.get_status_key())
             self.subpackage_upload_handle(response, data_loads)
 
     def retry_packet(self):
         while True:
             if not self.is_run:
-                # self.sent_log_info(self.alarm_info_format("warning", "been kill"))
+                # sent_log_info(alarm_info_format("warning", "been kill"))
                 break
             # 获取消息的redis ,并解码成python格式
             access = settings.access.capitalize()+"Obj"
@@ -188,7 +176,7 @@ class SubPackage:
             # 检查是否有超时时间，是否超过半个小时
             error_time = data_loads.get("extend").get("packet_timeout", None)
             if (error_time) and time.time() > error_time:
-                self.sent_log_info(self.alarm_info_format(
+                sent_log_info(alarm_info_format(
                     "error", data_loads.get("extend").get("error_key")))
             # subpackage(filename, channel_id, extend)
             response = packet.subpackage(filename=data_loads.get("filename"),

@@ -11,6 +11,7 @@ class baseObj(object):
     @abstractmethod
     def get_task(self, key):
          pass
-
+         
+    @abstractmethod
     def push_task(self, key, data):
         pass
