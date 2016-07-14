@@ -8,7 +8,10 @@ from ks3.connection import Connection
 from filechunkio import FileChunkIO
 from baseUpload import BaseUpload
 from UploadFile import upload_config
-
+import logging
+import logging.config
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("")
 
 class KSUpload(BaseUpload):
     def __init__(self, oss_config):
@@ -32,13 +35,13 @@ class KSUpload(BaseUpload):
             self.upload_chunk_file(cloud_file, file_to_upload)
             return
         bucket = self.__connect_ks()
-        print "开始上传%s。。。。到KS中" % file_to_upload
+        logger.debug("开始上传%s。。。。到KS中" % file_to_upload)
         key_name = bucket.new_key(cloud_file)
         key_name.set_contents_from_filename(file_to_upload)
         endTime = time.time()
         spendTime = endTime - startTime
-        print "上传%s完成。。。。" % file_to_upload
-        print "Upload file spend %f second." % (spendTime)
+        logger.debug("上传%s完成。。。。" % file_to_upload)
+        logger.debug("Upload file spend %f second." % (spendTime))
 
     def upload_to_cloud(self, filePartInfo):
         startTime = time.time()
@@ -47,7 +50,7 @@ class KSUpload(BaseUpload):
             filePartInfo['fp'].close()
         endTime = time.time()
         spendTime = endTime - startTime
-        print "Upload file part %d spent %f second." % (filePartInfo['partIdx'], spendTime)
+        logger.debug("Upload file part %d spent %f second." % (filePartInfo['partIdx'], spendTime))
 
     def upload_chunk_file(self, cloud_file, file_to_upload):
         bucket = self.__connect_ks()
@@ -76,5 +79,5 @@ class KSUpload(BaseUpload):
         bucket.set_acl("public-read", cloud_file)
         endTime = time.time()
         spendTime = endTime - startTime
-        print "File %s size %d Byte" % (cloud_file, file_size)
-        print "Upload file totally spent %f second" % spendTime
+        logger.debug("File %s size %d Byte" % (cloud_file, file_size))
+        logger.debug("Upload file totally spent %f second" % spendTime)

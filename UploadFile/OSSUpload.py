@@ -4,6 +4,10 @@ import time
 import oss2
 from baseUpload import BaseUpload
 from UploadFile import upload_config
+import logging
+import logging.config
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("")
 class OSSUpload(BaseUpload):
     def __init__(self, oss_config):
         self.__access_id = oss_config.get("ACCESS_ID")
@@ -25,16 +29,16 @@ class OSSUpload(BaseUpload):
             self.upload_chunk_file(cloud_file, file_to_upload)
             return
         bucket = self.__connect_oss()
-        print "开始上传%s。。。。到OSS中" % file_to_upload
+        logger.debug("开始上传%s到OSS中" % file_to_upload)
         startTime = time.time()
         bucket.put_object_from_file(cloud_file, file_to_upload)
         endTime = time.time()
         spendTime = endTime - startTime
-        print "上传%s完成。。。。" % file_to_upload
-        print "Upload file spent %f second." % (spendTime)
+        logger.debug("上传%s完成" % file_to_upload)
+        logger.debug("Upload file spent %f second." % (spendTime))
 
     def resumable(self, cloud_file, file_to_upload):
-        print "开始断点续传%s" % (file_to_upload)
+        logger.debug("开始断点续传%s" % (file_to_upload))
         startTime = time.time()
         bucket = self.__connect_oss()
         oss2.resumable_upload(bucket, cloud_file, file_to_upload,
@@ -44,7 +48,7 @@ class OSSUpload(BaseUpload):
                               num_threads=10)
         endTime = time.time()
         spendTime = endTime - startTime
-        print "Upload file spend %f second." % (spendTime)
+        logger.debug("Upload file spend %f second." % (spendTime))
 
     def upload_chunk_file(self, cloud_file, file_to_upload):
         bucket = self.__connect_oss()
@@ -53,7 +57,7 @@ class OSSUpload(BaseUpload):
         file_part_count = (total_size / part_size) + 1
         upload_id = bucket.init_multipart_upload(cloud_file).upload_id
         parts = []
-        print "开始分片存储%s。。。。。" % file_to_upload   # TODO 并发上传
+        logger.debug("开始分片存储%s " % file_to_upload )  # TODO 并发上传
         startTime = time.time()
         with open(file_to_upload, 'rb') as fileobj:
             part_number = 1
@@ -66,9 +70,9 @@ class OSSUpload(BaseUpload):
 
                 offset += num_to_upload
                 part_number += 1
-                print "upload chunk %d" % (part_number - 1)
+                logger.debug("upload chunk %d" % (part_number - 1) )
 
         bucket.complete_multipart_upload(cloud_file, upload_id, parts)
         endTime = time.time()
         spendTime = endTime - startTime
-        print "Upload file spend %f second." % (spendTime)
+        logger.debug("Upload file spend %f second." % (spendTime))

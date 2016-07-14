@@ -5,6 +5,10 @@ import redis
 
 from baseObj import baseObj
 import settings
+import logging
+import logging.config
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("")
 
 class RedisObj:
     def __init__(self):
@@ -26,12 +30,12 @@ class RedisObj:
         while not task_info:
             time.sleep(self.redis_sleep_time)
             task_info = redis_pop.rpop(key)
-        print "取到一个数据"
+        logger.debug("取到一个数据")
         task_info = json.loads(task_info)
         return task_info
 
     def push_task(self, key, data):
         redisPush = redis.Redis(connection_pool=self.get_redis_pool())
-        print "失败继续扔进redis"
+        logger.debug("失败继续扔进redis")
         data = json.dumps(data)
         redisPush.lpush(key, data)

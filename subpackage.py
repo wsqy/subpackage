@@ -11,7 +11,6 @@ import gevent
 
 import settings
 import packet
-
 from loggingInfoSent import alarm_info_format, sent_log_info
 from UploadFile import upload_config
 import sys
@@ -19,7 +18,10 @@ default_encoding = 'utf-8'
 if sys.getdefaultencoding() != default_encoding:
     reload(sys)
     sys.setdefaultencoding(default_encoding)
-
+import logging
+import logging.config
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("")
 
 class SubPackage:
     def __init__(self):
@@ -49,22 +51,22 @@ class SubPackage:
         gevent.joinall(gevent_task)
 
     def finish_message_notice(self, Info_url):
-        print "任务完成。。。。"
+        logger.debug("任务完成。。。。")
         return
         try:
             response = urllib2.urlopen(Info_url).read()
             if "success" in response :
                 # 打个成功的日志
-                print "消息发送成功"
-                print "上传成功删除文件"
+                logger.debug("消息发送成功")
+                logger.debug("上传成功删除文件")
             elif "miss" in response:
                 sent_log_info(alarm_info_format("notice", "missing"))
-                print "miss"
+                logger.debug("miss")
             else:
                 self.message_list.append(Info_url)
-                print "other"
+                logger.debug("other")
         except:
-            print "url不可达"
+            logger.debug("url不可达")
             self.message_list.append(Info_url)
 
     def message_queue(self):
@@ -81,7 +83,7 @@ class SubPackage:
         if message == "COMPLETE":
             filename = response.get_filename()
             finish_url = data_loads.get("finish_notice_url")
-            print " 准备上传%s。。。。。。" % filename
+            logger.debug(" 准备上传%s。。。。。。" % filename)
             self.get_upload_info(filename, finish_url)
         else:
             # 错误的扔进redis, 并检测是否有消息超时时间，如果没有则添加此时间为当前时间的后log_post_time 秒
@@ -109,7 +111,7 @@ class SubPackage:
                 k, v = self.upload_subpackage_dict.popitem()
                 if v[0] == 0:
                     # 全部上传成功，做一个通知 url = v[1]
-                    print "上传成功,删除子包"
+                    logger.debug("上传成功,删除子包")
                     os.remove(k)
                     self.finish_message_notice(v[1])
                     continue
@@ -122,7 +124,7 @@ class SubPackage:
     def upload_cloud(self, conf):
         # h_driver = "oss"
         filename = conf.get("filename")
-        # print filename
+        # logger.debug(filename)
         cloud_filename = os.path.join(conf.get("basedir", ""), os.path.basename(filename))
         driver = conf.get("DRIVER")
         upload_module = __import__("UploadFile." + driver)
@@ -132,7 +134,7 @@ class SubPackage:
         try:
             upload_file(cloud_filename, filename)
         except Exception, e:
-            print e, filename, "失败重传--------"
+            logger.debug(e, filename, "失败重传--------")
             # 将文件名封装进这个字典
             self.upload_subpackage_dict.get(filename)[0] += 1
             self.upload_subpackage_dict.get(filename)[2].append(conf)
@@ -142,14 +144,14 @@ class SubPackage:
             if not self.is_run:
                 # sent_log_info(alarm_info_format("warning", "been kill")) 
                 break
-            print "开始解任务。。。。。"
+            logger.debug("开始解任务。。。。。")
             # 获取消息的redis ,并解码成python格式
             task_type = settings.task_type.capitalize()+"Obj"
             upload_module = __import__("PacketRequest." + task_type)
             up_access = getattr(getattr(upload_module, task_type), task_type)
             get_task = getattr(up_access(), "get_task")
             data_loads = get_task(getattr(up_access(), "redis_key"))
-            print "开始分包。。。。"
+            logger.debug("开始分包。。。。")
             startTime = time.time()
             response = packet.subpackage(filename=data_loads.get("filename"),
                                          channel_id=data_loads.get("channel_id"),
@@ -157,8 +159,8 @@ class SubPackage:
                                          )
             endTime = time.time()
             spendTime = endTime - startTime
-            print "subpackage spent %f second." % spendTime
-            print(response.get_status_key())
+            logger.debug("subpackage spent %f second." % spendTime)
+            logger.debug(response.get_status_key())
             self.subpackage_upload_handle(response, data_loads)
 
     def retry_packet(self):
