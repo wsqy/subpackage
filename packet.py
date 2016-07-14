@@ -8,14 +8,18 @@ from shutil import copyfile
 import zipfile
 import tempfile
 from AxmlParserPY import apk
-import random
 import settings
-import sys
+import random
+
+import logging
+import logging.config
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("")
 
 
 class Response:
     def __init__(self):
-        self.status = True
+        self.status = False
         self.status_key = "NO_READY"
         self.status_code = "101"
         self.status_message = "打包未开始"
@@ -84,6 +88,10 @@ def make_apk_file_name(filename, channel_id, version_name):
 
 
 def make_sub_package_file(filename, channel_id, version_name):
+    if settings.subpackage_sdk_path :
+        if not os.path.isdir(settings.subpackage_sdk_path):
+            os.mkdir(settings.subpackage_sdk_path)
+        return os.path.join(settings.subpackage_sdk_path, make_apk_file_name(filename, channel_id, version_name))
     return os.path.join(make_package_dir(filename), make_apk_file_name(filename, channel_id, version_name))
 
 
@@ -103,7 +111,6 @@ def zip_add_file(channel_file, target_file, date=None):
             zip_opt.write(temp_file_opt.name, target_file)
 
 
-
 def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
     meta_info_dir = 'META-INF'
 
@@ -112,7 +119,11 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
     channel_info_file = os.path.join(meta_info_dir, json_file_name)
 
     # 以当前的时间戳为文件名，生成附件文件，避免apk传输过程中被缓存旧包
-    time_file = os.path.join(meta_info_dir,str(int(time.time())))
+    random_str = str(time.time()) + "".join(
+                 random.sample(settings.random_chr,
+                 random.randint(1, len(settings.random_chr))))
+
+    time_file = os.path.join(meta_info_dir, random_str)
 
     # 强更版本信息
     channel_version = str(extend.get("channel_version", 13))
@@ -123,7 +134,7 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
     # 添加文件到压缩包
     data = {'author': 'admin'}
     zip_add_file(channel_file, channel_info_file, date=json.dumps(data))
-    zip_add_file(channel_file, time_file, date=str(int(time.time())))
+    zip_add_file(channel_file, time_file, date=random_str)
     zip_add_file(channel_file, channel_version_file, date=channel_version)
 
     endTime = time.time()
@@ -135,74 +146,60 @@ def subpackage(filename=None, channel_id=None, extend=None):
     response = Response()
     # 确认参数完整性
     if not filename or not channel_id:
-        response.set_status(False)
         response.set_status_key('ARG_MISS')
+        return response
 
 
     # 检查游戏母包是否存在
-    source_file =''
-    if response.get_status():
-        source_file = make_parent_package_file(filename)
-        if not os.path.exists(source_file):
-            response.set_status(False)
-            response.set_status_key('NO_APK')
+    source_file = make_parent_package_file(filename)
+    if not os.path.exists(source_file):
+        response.set_status_key('NO_APK')
+        return response
 
     # 检查游戏母包权限
-    if response.get_status():
-        if not os.access(source_file, os.R_OK):
-            response.set_status(False)
-            response.set_status_key('PERM_ERROR')
+    if not os.access(source_file, os.R_OK):
+        response.set_status_key('PERM_ERROR')
+        return response
 
     # 生成channel_file文件名并检查是否存在
     channel_file = ''
-    if response.get_status():
-        try:
-            version_name = get_apk_version(source_file)
-            channel_file = make_sub_package_file(filename, channel_id, version_name)
-            if False and os.path.exists(channel_file):   # TODO: 如果有强制打包标识，强制打包
-                response.set_status(False)
-                response.set_status_key('HAVEN_SUB')
-        except IOError, e:
-            response.set_status(False)
-            response.set_status_key('WRONG_APK')
-            response.set_message(e)
+    try:
+        version_name = get_apk_version(source_file)
+        channel_file = make_sub_package_file(filename, channel_id, version_name)
+        if os.path.exists(channel_file):   # TODO: 如果有强制打包标识，强制打包
+            response.set_status_key('HAVEN_SUB')
+            response.set_filename(channel_file)
             return response
+    except IOError, e:
+        response.set_status_key('WRONG_APK')
+        response.set_message(e)
+        return response
 
     # 复制母包文件
-    if response.get_status():
-        if not copyfile(source_file, channel_file):
-            my_chmod(channel_file)
-        else:
-            response.set_status(False)
-            response.set_status_key('COPY_APK_ERROR')
+    if not copyfile(source_file, channel_file):
+        my_chmod(channel_file)
+    else:
+         response.set_status_key('COPY_APK_ERROR')
+         return response
 
     # 开始分包
-    if response.get_status():
-        try :
-            unpack(channel_file, channel_id, extend, version_name)
-        except IOError, e:
-            response.set_status(False)   # fixme ,默认为失败
-            response.set_status_key('UNKNOWN_ERROR')
-            response.set_special_message(e)
-            return response
+    try:
+        unpack(channel_file, channel_id, extend, version_name)
+    except IOError, e:
+        response.set_status(False)   # fixme ,默认为失败
+        response.set_status_key('UNKNOWN_ERROR')
+        response.set_special_message(e)
+        return response
 
 
-    if response.get_status():
-        response.set_status_key("COMPLETE")
-        response.set_filename(channel_file)
-        '''
-        这里需要把成功的分包信息写入日志
-        '''
-    else:
-        # os.remove(channel_file)
-        '''
-        错误的扔进redis,并检测是否有消息超时时间，如果没有则添加此时间为当前时间的后 log_post_time 秒
-        '''
+    response.set_status("True")
+    response.set_status_key("COMPLETE")
+    response.set_filename(channel_file)
     return response
 
 
 if __name__ == "__main__":
-    filename = "testapk"
+    filename = "3"
     channel_id = 13
     extend = {"channel_version": "13"}
     startTime = time.time()

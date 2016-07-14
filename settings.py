@@ -57,5 +57,13 @@ log_post_time = 30*60
 # apk包的根路径
 sdk_game_path = "apk"
 
+# 子包路径
+subpackage_sdk_path = 'abc'
+
 # 分包时生成的临时文件路径
 tempfile_dir = '/tmp'
+
+# 生成随机字符串时，字符只能在下列字符串中
+random_chr = 'abcdefghjkmnpqrstuvwxyz23456789QWERTYUIPASDFGHJKLMNBVCXZ'
+
+debug = True

@@ -88,9 +88,19 @@ setting文件：
 
     
     sdk_game_path # apk包的根路径
+    
+    
+    subpackage_sdk_path # 子包路径 当设置为None时，会在母包同目录下生成子包
 
     
     tempfile_dir # 分包时生成的临时文件路径，如果想在当前文件下生成临时文件，请设置为None
+    
+    # 生成随机长度的字符串时，字符只能在下列字符串中
+    random_chr = 'abcdefghjkmnpqrstuvwxyz23456789QWERTYUIPASDFGHJKLMNBVCXZ'
+
+    debug # 当此值为True时，开启调试模式，包括：分包上传完成不通知直接删除，
+
+
     
 UploadFile/upload_config文件说明： 
     storageList可以由使用者配置，storage_config请不要更改
@@ -107,5 +117,9 @@ UploadFile/upload_config文件说明：
         "file_critical_size":  # 超过此阈值，将采用分块上传
         "file_chunk_size":     # 采用分块上传时，每一块的大小
         "basedir": "",         # 指定上传到云存储时具体的bucketName下的目录
+        
+
+logging.conf文件，指定程序日志记录的相关消息，需要改的地方为最后一行
+args=('test.log', 'a', 200000, 9)处，文件名及存储位置
     
 

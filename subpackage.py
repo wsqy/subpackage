@@ -51,8 +51,9 @@ class SubPackage:
         gevent.joinall(gevent_task)
 
     def finish_message_notice(self, Info_url):
-        logger.debug("任务完成。。。。")
-        return
+        if settings.debug:
+            logger.debug("任务完成。。。。")
+            return
         try:
             response = urllib2.urlopen(Info_url).read()
             if "success" in response :
@@ -80,7 +81,7 @@ class SubPackage:
 
     def subpackage_upload_handle(self, response, data_loads):
         message = response.get_status_key() # todo  状态和错误分开
-        if message == "COMPLETE":
+        if message == "COMPLETE" or message == "HAVEN_SUB":
             filename = response.get_filename()
             finish_url = data_loads.get("finish_notice_url")
             logger.debug(" 准备上传%s。。。。。。" % filename)
