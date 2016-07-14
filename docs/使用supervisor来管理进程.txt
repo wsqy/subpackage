@@ -1,0 +1,19 @@
+使用supervisor来管理进程
+安装 supervisor, 一个专门用来管理进程的工具，我们用它来管理 gunicorn/uwsgi--------pip install supervisor
+ 
+生成 supervisor 默认配置文件，比如我们放在 supervisord.conf 路径中：-------
+echo_supervisord_conf >supervisord.conf
+
+[program:subpackage]
+command=python subpackage.py
+startsecs=0
+stopwaitsecs=0
+autostart=true
+autorestart=true
+
+
+启动 supervisor     supervisord -c  supervisord.conf
+ 
+重启 qyBlog 程序（项目）：    supervisorctl -c supervisord.conf restart subpackage
+ 
+启动，停止，或重启 supervisor 管理的某个程序 或 所有程序：--supervisorctl -c  supervisord.conf  [start|stop|restart] [program-name|all]
