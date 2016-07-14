@@ -1,0 +1,240 @@
+说明：
+由于centos或者RHEL操作系统自带的python一般都比较低，centos6 自带的python版本都是2.6.6，但是现在一般python使用的版本都是2.7版本，以前总在操作上源码升级python，但是这样会导致的yum等利用python使用的命令错误，虽然修改yum源码可以解决问题，但是总感觉很麻烦，而且一个个命令文件的修改也感觉很LOW啊！
+
+发现pyenv这个软件很不错，可以在一个系统中共存两套python版本，而且不影响系统自带老版本python的使用；
+
+安装pyenv首先安装好python编译需要的rpm包环境：
+yum install openssl -y
+yum install openssl-devel openssl-static readline readline-devel readline-static sqlite-devel bzip2-devel bzip2-libs -y
+yum install gcc
+
+sudo apt-get install openssl -y
+sudo apt-get install openssl-devel openssl-static readline readline-devel readline-static sqlite-devel bzip2-devel bzip2-libs -y
+sudo apt-get install gcc
+sudo apt-get install git
+git clone git://github.com/yyuu/pyenv.git ~/.pyenv
+</p>
+
+废话不多说，开始安装pyenvpyenv.7z
+git clone git://github.com/yyuu/pyenv.git ~/.pyenv
+chmod +x ~/.pyenv/bin/pyenv
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+exec $SHELL -l
+
+查看pyenv支持的python版本：
+wKioL1VIc2nzf0msAAEGW5NqQdI070.jpg
+
+现在要在利用系统中安装python 2.7.9版本了，
+pyenv install 2.7.9 -v
+
+刷新数据库：
+pyenv rehash
+
+到现在系统中已经有两套不同版本的python，但是系统默认的还是python 2.6版本的，现在进行切换：
+pyenv global 2.7.9
+
+wKiom1VIc5ehfdrYAACZfpvZGIw825.jpg
+
+
+现在系统默认的python版本就是2.7.9了，yum可以正常使用，因为yum注释是 “/usr/bin/python”,我们自己写的python用的是 “/usr/bin/env python”,这个对于的就是系统环境中python 2.7.9 ！
+
+pyenv不错，非常方便，不会引起系统中python版本混乱问题！
+
+-====================================-
+
+用pyenv和virtualenv搭建单机多版本python虚拟开发环境
+
+
+作为主流开发语言， 用python 开发的程序越来越多。 方便的是大多linux系统里面都默认集成了python, 开发可以随时随地开始。 但有时候这也成为了一个短板， 比如说有时候我们需要开发和调试一些需要安装在默认python路径里的程序， 反复地修改和安装会使系统目录越来越乱，这对于一些有洁癖的程序员来说是不可接受的。 还有时候我们需要在不同的python版本上开发， 而系统一般只会自带一到两种python版本， 切换起来更是麻烦。
+本文将介绍如何利用pyenv 和virtualenv 在单机上搭建多版本python 虚拟开发环境。
+首先我们搞清楚pyenv 和virtualenv分别是干什么的。
+pyenv可以帮助你在一台开发机上建立多个版本的python环境， 并提供方便的切换方法。
+virtualenv则提供了一种功能， 就是将一个目录建立为一个虚拟的python环境， 这样的话， 用户可以建立多个虚拟环境， 每个环境里面的python版本可以是不同的， 也可以是相同的， 而且环境之间相互独立。
+如果解释得还不是很清楚的话，我们举例说明。
+首先我们可以用pyenv 安装多个python 版本， 比如安装了2.5, 2.6, 3.3 三个版本。 用户可以随意切换当前默认的python版本。 但这时候， 每个版本的环境仍是唯一的， 如果我们想在环境中安装一些库的话， 还是会导致这个版本的环境被修改。 这个时候， 如果我们用virtual env去建立虚拟环境， 就可以完全保证系统路径的干净。无论你在虚拟环境中安装了什么程序， 都不会影响已安装版本的系统环境。
+说了这么多， 还是动手实践一下来得实在。本文的例子是在一台干净的Ubuntu机器上进行的
+1. 首先我们安装pyenv
+因为我的Ubuntu是干净的， 所以还需要先安装curl 和 git
+1.sudo apt-get install curl git-core
+接下来安装pyenvpyenv-installer.7z
+1.curl https://raw.github.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
+这个命令会把pyenv安装到当前用户的 ~/.pyenv目录下.
+同时， 我们还需要把下面代码存到~/.bashrc文件中：
+1.export PYENV_ROOT="${HOME}/.pyenv"
+2. 
+3.if [ -d "${PYENV_ROOT}" ]; then
+4.export PATH="${PYENV_ROOT}/bin:${PATH}"
+5.eval "$(pyenv init -)"
+6.fi
+这段代码的作用主要是指明pyenv的位置， 以便以后可以直接在命令行里面运行pyenv命令。 保存在~/.bashrc 文件中是为了每次用户登陆后自动生效。
+所以如果你是第一次运行命令并且没有注销的话， 这一段是不会生效的， 我们还需要运行下面的命令令其生效
+1.source ~/.bashrc
+然后就可以直接在命令行里面敲pyenv了。
+2. 安装一些必须的包
+1.sudo apt-get build-dep python2.7
+ 后面安装其他版本python的时候会需要这些包
+3. 安装某个版本的python
+首先我们可以查看一下有哪些版本的python 可以安装
+1.pyenv install --list
+结果如下：
+01.2.4
+02.2.4.1
+03.2.4.2
+04.2.4.3
+05.2.4.4
+06.2.4.5
+07.2.4.6
+08.2.5
+09....
+接下来， 作为例子我们安装两个版本 (2.7.1 和 3.3.5)
+1.pyenv install 2.7.1
+1.pyenv install 3.3.5
+安装完毕后， 我们可以查看安装的情况
+1.pyenv versions
+输出结果如下：
+1.* system (set by /home/tony/.pyenv/version)
+2.2.7.1
+3.3.3.5
+简单来说我们已经在这台机器上安装了三个版本的python
+system 代表当前系统的python 版本
+2.7.1 和 3.3.5是我们用pyenv安装的
+*表示当前的python版本， 可以看到， 我们还在使用的是默认的system 自带的python版本
+4. 切换python版本做一下测试
+既然已经安装了两个其他版本的python, 我们来做一下测试
+1.pyenv global 2.7.1
+这条命令就是将当前python 版本切换到2.7.1
+再次运行 pyenv versions, 结果如下：
+1.system
+2.* 2.7.1 (set by /home/tony/.pyenv/version)
+3.3.3.5
+可以看到当前的python 版本已经切换到2.7.1了， 如果还不放心， 直接运行 ‘python’ 命令进行验证：
+1.tony@ubuntu:~$ python
+2.Python 2.7.1 (r271:86832, May  9 2014, 01:07:17)
+3.[GCC 4.8.2] on linux3
+4.Type "help", "copyright", "credits" or "license" for more information.
+5.>>>
+这里可以清楚看到， 当前版本确实是2.7.1
+同理， 我们可以继续用python global在各个版本之间进行切换， 如果要切换回系统版本， 请用：
+1.pyenv global system
+如果要卸载某个版本的python, 可以这样：
+1.pyenv uninstall x.x.x
+5. 利用virtualenv 创建虚拟python环境
+现在我们已经安装了多个python版本，但是这还不够, 某些有洁癖的程序员是一定要系统环境足够干净的，这时候我们可以使用virtualenv来创建虚拟python环境
+virtualenv本是一个独立的工具，官网在这里：https://pypi.python.org/pypi/virtualenv
+幸运的是，如果你是安装我们前面的方式安装pyenv的，那它已经帮我们以plugin的形式安装好了virtualenv, 我们只要使用就好了
+首先我们创建一个2.7.1的虚拟环境
+1.pyenv virtualenv 2.7.1 env271
+这条命令在本机上创建了一个名为env271的python虚拟环境，这个环境的真实目录位于：~/.pyenv/versions/
+注意，命令中的 ‘2.7.1’ 必须是一个安装前面步骤已经安装好的python版本， 否则会出错。
+然后我们可以继续通过 ‘pyenv versions’ 命令来查看当前的虚拟环境， 结果如下：
+1.* system (set by /home/tony/.pyenv/version)
+2.2.7.1
+3.3.3.5<br>  env271
+这里我们可以看到， 除了已经安装的python版本， 我们多出了一个env271的python虚拟环境
+6. 切换和使用新的python虚拟环境
+切换到新的虚拟环境的命令为
+1.pyenv activate env271
+接下来我们的python环境就已经切换到2.7.1的虚拟环境了， 运行 ‘python’ 命令认证
+1.(env271)tony@ubuntu:~$ python
+2.Python 2.7.1 (r271:86832, May  9 2014, 01:07:17)
+3.[GCC 4.8.2] on linux3
+4.Type "help", "copyright", "credits" or "license" for more information.
+5.>>>
+可以看到， python版本已经是2.7.1, 而且是在虚拟环境之中 （env271)
+下面基本上你就可以在这个虚拟环境里面为所欲为了 :) 再也不用担心系统路径被搞乱的问题了。
+如果要切换回系统环境， 运行这个命令即可
+1.pyenv deactivate
+那如果要删除这个虚拟环境呢？ 答案简单而且粗暴，只要直接删除它所在的目录就好：
+1.rm -rf ~/.pyenv/versions/env271/
+至此大功告成！
+
+-=============================================-
+
+python pyenv 多版本管理（自动安装脚本）
+Summary
+
+比较了多个类似的工具，最后决定选择pyenv， virtualenv过于原始，还有一些不再维护。
+
+Install
+
+下面是在suse上安装的流程：
+1） 首先从https://github.com/yyuu/pyenv/archive/master.zip下载原始文件。
+2） 在HOME下面建立一个文件夹，名称是 .pyenv
+3)    将zip文件解压到 .pyenv中
+4） 在 .bashrc中添加如下
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+5) source ~/.bashrc
+至此整个pyenv都安装完成。
+Usage
+
+pyenv install -l 
+
+列举所有的可用的Python版本
+pyenv install 2.7.5
+
+安装某个版本的python
+pyenv versions
+
+列出所有已经安装的版本
+pyenv versions
+  system
+* 2.7.5 (set by /home/jwang/.python-version)
+pyenv local 2.7.5
+
+设置所要使用的某一个python版本，当然也可以用global那就是全局的作用了
+
+Issue
+bzip2没有找到的bug, 到下面的地址下载一个make然后install
+http://www.bzip.org/downloads.html
+
+Advanced
+
+带参数的安装，下面是一个安装动态版本的例子：
+env CONFIGURE_OPTS="--enable-shared" pyenv install -v 2.7.5
+
+自动安装脚本
+
+些了一个自动安装脚本
+      1 #! /usr/bin/env python  
+      2 import subprocess, os  
+      3 from os.path import expanduser  
+      4   
+      5 # parameters  
+      6 config_file = ".bashrc"  
+      7   
+      8 def script(cmd):  
+      9     subprocess.call(cmd,  shell=True)  
+     10 home = expanduser("~")  
+     11   
+     12 # install pyenv  
+     13 script("unzip ./pyenv-master.zip")  
+     14 env_path = home+"/"+".pyenv"  
+     15 if not os.path.exists(env_path):  
+     16     os.makedirs(env_path)  
+     17 script("cp -rf ./pyenv-master/* ~/.pyenv")  
+     18   
+     19 config_file = home+"/"+config_file  
+     20 print config_file  
+     21 if os.path.exists(config_file) is False:  
+     22     print "Error: can't find config file "+ config_file  
+     23     exit()  
+     24 with open(config_file, 'a') as file:  
+     25     file.write('export PYENV_ROOT="$HOME/.pyenv"\n')  
+     26     file.write('export PATH="$PYENV_ROOT/bin:$PATH"\n')  
+     27     file.write('eval "$(pyenv init -)"\n')  
+     31 os.environ["PYENV_ROOT"] = home+"/"+".pyenv"  
+     32 os.environ["PATH"]  +=  ":"+os.environ["PYENV_ROOT"]+"/bin"  
+     33 script("pyenv init")  
+     34 print os.environ["PATH"]  
+     35 script("source "+config_file)  
+     36 script("pyenv install 2.7.5")  
+     37 script("pyenv rehash")  
+     38 script("pyenv global 2.7.5")  
+     39 script("rm -rf ./pyenv-master")  
+主要参考：
+
+https://github.com/yyuu/pyenv#understanding-path
