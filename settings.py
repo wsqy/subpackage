@@ -58,7 +58,7 @@ log_post_time = 30*60
 sdk_game_path = "/data/www/6y_download/sdkgame"
 
 # 子包路径
-subpackage_sdk_path = 'abc'
+subpackage_sdk_path = None
 
 # 分包时生成的临时文件路径
 tempfile_dir = '/tmp'
@@ -66,4 +66,4 @@ tempfile_dir = '/tmp'
 # 生成随机字符串时，字符只能在下列字符串中
 random_chr = 'abcdefghjkmnpqrstuvwxyz23456789QWERTYUIPASDFGHJKLMNBVCXZ'
 
-debug = True
+debug = False

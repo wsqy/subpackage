@@ -17,13 +17,13 @@ storage_config = {
     },
     "oss1": {
         "DRIVER": 'OSSUpload',
-        "DOMAIN": "http://mogetest.6y.com.cn/",
+        "DOMAIN": "http://downapk.6y.com.cn/",
         "ACCESS_ID": "VPaDmdb3VoNB0k6t",
         "ACCESS_KEY": "jY1CoUcoKamDbaZZUIENIsRjfpTNCI",
         "ENDPOINT": "oss-cn-hangzhou-internal.aliyuncs.com",
-        "BUCKET": "mogetest",
+        "BUCKET": "moge666",
         "file_chunk_size": 2*1024*1024,
         "file_critical_size": 5*1024*1024,
-        "basedir": "qytest",
+        "basedir": "",
     },
 }
