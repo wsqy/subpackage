@@ -17,10 +17,10 @@ retry_upload_num =1
 # 消息存储方式
 task_type = "redis"
 # redis数据库的基本信息
-redis_host = '121.199.34.235'
+redis_host = '2cdd06c0eba54c30.m.cnhza.kvstore.aliyuncs.com'
 redis_port = 6379
 redis_db = 0
-redis_auth = "uid"
+redis_auth = "nhuWq6vgsEypdZF"
 redis_key = "6y:apk:subpackage:task"
 redis_retry_key = "6y:apk:subpackage:retrytask"
 redis_sleep_time = 10
@@ -55,7 +55,7 @@ UDP_PORT = 1414
 log_post_time = 30*60
 
 # apk包的根路径
-sdk_game_path = "apk"
+sdk_game_path = "/data/www/6y_download/sdkgame"
 
 # 子包路径
 subpackage_sdk_path = 'abc'
