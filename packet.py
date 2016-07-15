@@ -170,8 +170,9 @@ def subpackage(filename=None, channel_id=None, extend=None):
             response.set_status_key('HAVEN_SUB')
             response.set_filename(channel_file)
             return response
-    except IOError, e:
+    except Exception, e:
         response.set_status_key('WRONG_APK')
+        logger.debug(e)
         response.set_message(e)
         return response
 
@@ -185,9 +186,10 @@ def subpackage(filename=None, channel_id=None, extend=None):
     # 开始分包
     try:
         unpack(channel_file, channel_id, extend, version_name)
-    except IOError, e:
+    except Exception, e:
         response.set_status(False)   # fixme ,默认为失败
         response.set_status_key('UNKNOWN_ERROR')
+        logger.debug(e)
         response.set_special_message(e)
         return response
 
