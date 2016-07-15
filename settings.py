@@ -5,9 +5,9 @@ import os
 
 
 # 主打包进程数
-packet_num = 1
+packet_num = 3
 # 打包失败的尝试进程数
-retry_packet_num =1
+retry_packet_num = 3
 # 消息通知进程数
 message_num = 1
 
@@ -23,7 +23,7 @@ redis_db = 0
 redis_auth = "nhuWq6vgsEypdZF"
 redis_key = "6y:apk:subpackage:task"
 redis_retry_key = "6y:apk:subpackage:retrytask"
-redis_sleep_time = 10
+redis_sleep_time = 3
 
 #基本的打包状态消息
 status_code = {
@@ -58,7 +58,7 @@ log_post_time = 30*60
 sdk_game_path = "/data/www/6y_download/sdkgame"
 
 # 子包路径
-subpackage_sdk_path = None
+subpackage_sdk_path = ''
 
 # 分包时生成的临时文件路径
 tempfile_dir = '/tmp'
