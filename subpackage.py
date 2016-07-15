@@ -126,7 +126,8 @@ class SubPackage:
         # h_driver = "oss"
         filename = conf.get("filename")
         # logger.debug(filename)
-        cloud_filename = os.path.join(conf.get("basedir", ""), os.path.basename(filename))
+        apk_base_path = filename.split("_")[0]
+        cloud_filename = os.path.join(conf.get("basedir", ""), apk_base_path, os.path.basename(filename))
         driver = conf.get("DRIVER")
         upload_module = __import__("UploadFile." + driver)
         up_driver = getattr(getattr(upload_module, driver), driver)
