@@ -4,7 +4,6 @@ import signal
 import time
 import urllib2
 import os
-import socket
 from gevent import monkey
 monkey.patch_all()
 import gevent
@@ -12,16 +11,15 @@ import gevent
 import settings
 import packet
 from loggingInfoSent import alarm_info_format, sent_log_info
-from UploadFile import upload_config
+import logging.config
+logging.config.dictConfig(settings.LOGGING)
+logger = logging.getLogger('mylogger')
 import sys
 default_encoding = 'utf-8'
 if sys.getdefaultencoding() != default_encoding:
     reload(sys)
     sys.setdefaultencoding(default_encoding)
-import logging
-import logging.config
-logging.config.fileConfig("logging.conf")
-logger = logging.getLogger("")
+
 
 class SubPackage:
     def __init__(self):
@@ -98,9 +96,9 @@ class SubPackage:
             push_task(getattr(up_access(), "redis_retry_key"), data_loads)
 
     def get_upload_info(self, filename, notice_url):
-        self.upload_subpackage_dict[filename] = [len(upload_config.storageList), notice_url, []]
-        for st in upload_config.storageList:
-            conf = upload_config.storage_config.get(st)
+        self.upload_subpackage_dict[filename] = [len(settings.storageList), notice_url, []]
+        for st in settings.storageList:
+            conf = settings.storage_config.get(st)
             conf["filename"] = filename
             self.upload_subpackage_dict.get(filename)[2].append(conf)
 
@@ -112,7 +110,7 @@ class SubPackage:
                 k, v = self.upload_subpackage_dict.popitem()
                 if v[0] == 0:
                     # 全部上传成功，做一个通知 url = v[1]
-                    logger.debug("上传成功,删除子包")
+                    logger.info("上传成功,删除子包")
                     os.remove(k)
                     self.finish_message_notice(v[1])
                     continue
@@ -128,7 +126,6 @@ class SubPackage:
         logger.debug(filename)
         apk_base_path = os.path.basename(filename).split("_")[0]
         cloud_filename = os.path.join(conf.get("basedir", ""), apk_base_path, os.path.basename(filename))
-        logger.debug(cloud_filename)
         driver = conf.get("DRIVER")
         upload_module = __import__("UploadFile." + driver)
         up_driver = getattr(getattr(upload_module, driver), driver)
@@ -137,7 +134,7 @@ class SubPackage:
         try:
             upload_file(cloud_filename, filename)
         except Exception, e:
-            logger.debug(e, filename, "失败重传--------")
+            logger.error(e, filename, "失败重传--------")
             # 将文件名封装进这个字典
             self.upload_subpackage_dict.get(filename)[0] += 1
             self.upload_subpackage_dict.get(filename)[2].append(conf)

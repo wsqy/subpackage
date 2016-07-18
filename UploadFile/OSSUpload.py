@@ -5,13 +5,14 @@ import oss2
 from gevent.monkey import patch_all
 patch_all()
 import gevent
+import settings
 from filechunkio import FileChunkIO
 from baseUpload import BaseUpload
-from UploadFile import upload_config
-import logging
 import logging.config
-logging.config.fileConfig("logging.conf")
-logger = logging.getLogger("")
+logging.config.dictConfig(settings.LOGGING)
+logger = logging.getLogger('mylogger')
+
+
 class OSSUpload(BaseUpload):
     def __init__(self, oss_config):
         self.__access_id = oss_config.get("ACCESS_ID")
@@ -34,16 +35,15 @@ class OSSUpload(BaseUpload):
             self.upload_chunk_file(cloud_file, file_to_upload)
             return
         bucket = self.__connect_oss()
-        logger.debug("开始上传%s到OSS中" % file_to_upload)
+        logger.info("开始上传%s到OSS中" % file_to_upload)
         startTime = time.time()
         bucket.put_object_from_file(cloud_file, file_to_upload)
         endTime = time.time()
         spendTime = endTime - startTime
-        logger.debug("上传%s完成" % file_to_upload)
-        logger.debug("Upload file spent %f second." % (spendTime))
+        logger.info("Upload file %s spent %f second." % (file_to_upload, spendTime))
 
     def resumable(self, cloud_file, file_to_upload):
-        logger.debug("开始断点续传%s" % (file_to_upload))
+        logger.info("开始断点续传%s" % (file_to_upload))
         startTime = time.time()
         bucket = self.__connect_oss()
         oss2.resumable_upload(bucket, cloud_file, file_to_upload,
@@ -53,7 +53,7 @@ class OSSUpload(BaseUpload):
                               num_threads=10)
         endTime = time.time()
         spendTime = endTime - startTime
-        logger.debug("Upload file spend %f second." % (spendTime))
+        logger.info("Upload file %s spent %f second." % (file_to_upload, spendTime))
 
     def complicate_upload(self,chunk_information):
         startTime = time.time()
@@ -64,7 +64,7 @@ class OSSUpload(BaseUpload):
             self.__parts.append(oss2.models.PartInfo(chunk_info["part_number"], result.etag))
             endTime = time.time()
             spendTime = endTime - startTime
-            print "Upload file part %d spent %f second." % (chunk_info["part_number"], spendTime)
+            logger.debug("Upload file part %d spent %f second." % (chunk_info["part_number"], spendTime))
 
 
     def upload_chunk_file(self, cloud_file, file_to_upload):
@@ -74,7 +74,7 @@ class OSSUpload(BaseUpload):
         file_part_count = (total_size / part_size) + 1
         upload_id = bucket.init_multipart_upload(cloud_file).upload_id
         chunk_information = []
-        logger.debug("开始分片存储%s " % file_to_upload )  # TODO 并发上传
+        logger.info("开始分片存储%s " % file_to_upload )  # TODO 并发上传
         startTime = time.time()
         for chunkIdx in xrange(file_part_count):
             offset = part_size * chunkIdx
@@ -90,8 +90,8 @@ class OSSUpload(BaseUpload):
         muti_upload = []
         for each in range(self.muti_upload_chunk_num):
             muti_upload.append(gevent.spawn(self.complicate_upload, chunk_information))
-
+        gevent.joinall(muti_upload)
         bucket.complete_multipart_upload(cloud_file, upload_id, self.__parts)
         endTime = time.time()
         spendTime = endTime - startTime
-        logger.debug("Upload file spend %f second." % (spendTime))
+        logger.info("Upload file %s spent %f second." % (file_to_upload, spendTime))
