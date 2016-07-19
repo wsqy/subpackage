@@ -6,6 +6,7 @@ echo_supervisord_conf >supervisord.conf
 
 [program:subpackage]
 command=python subpackage.py
+directory=/data/pytools/subpackage
 startsecs=0
 stopwaitsecs=0
 autostart=true
