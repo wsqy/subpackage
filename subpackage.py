@@ -27,8 +27,7 @@ logger = logging.getLogger("")
 
 setproctitle('subpackage')
 
-class SubPackage:
-<<<<<<< HEAD
+class SubPackage: 
     def __init__(self):
         self.retry_packet_num = settings.retry_packet_num
         self.packet_num = settings.packet_num
