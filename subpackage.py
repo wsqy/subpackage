@@ -94,7 +94,7 @@ class SubPackage:
             filename = response.get_filename()
             finish_url = data_loads.get("finish_notice_url")
             logger.debug(" 准备上传%s。。。。。。" % filename)
-            self.get_upload_info(filename, finish_url)
+            self.get_upload_info(response, finish_url)
         else:
             # 错误的扔进redis, 并检测是否有消息超时时间，如果没有则添加此时间为当前时间的后log_post_time 秒
             error_time = self.get_packet_error_time(data_loads)
@@ -104,11 +104,13 @@ class SubPackage:
             push_task = self.get_task_hand_way("push_task")
             push_task(settings.task_store_retry_key, data_loads)
 
-    def get_upload_info(self, filename, notice_url):
+    def get_upload_info(self, response, notice_url):
+        filename = response.get_filename()
         self.upload_subpackage_dict[filename] = [len(settings.storageList), notice_url, []]
         for st in settings.storageList:
             conf = settings.storage_config.get(st)
             conf["filename"] = filename
+            conf["packet_dir_path"] = response.get_packet_dir_path()
             self.upload_subpackage_dict.get(filename)[2].append(conf)
 
     def get_upload_task(self):
@@ -130,11 +132,12 @@ class SubPackage:
                     self.upload_cloud(conf)
 
     def upload_cloud(self, conf):
-        # h_driver = "oss"
         filename = conf.get("filename")
         # logger.debug(filename)
-        apk_base_path = os.path.basename(filename).split("_")[0]
+        # apk_base_path = os.path.basename(filename).split("_")[0]
+        apk_base_path = conf.get("packet_dir_path")
         cloud_filename = os.path.join(conf.get("basedir", ""), apk_base_path, os.path.basename(filename))
+        logger.debug(cloud_filename)
         driver = conf.get("DRIVER")
         upload_module = __import__("UploadFile." + driver)
         up_driver = getattr(getattr(upload_module, driver), driver)
