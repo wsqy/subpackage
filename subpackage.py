@@ -1,7 +1,6 @@
-#!/usr/bin/env python2.7
+#!/bin/env python2.7
 # coding:utf-8
 
-#!/bin/env python2.7
 import signal
 import time
 import urllib2
@@ -44,11 +43,11 @@ class SubPackage:
 		self.is_run = False
 
 	def gevent_join(self):
-		gevent_task = [] 
+		gevent_task = []
 		for each in range(self.packet_num):
-			gevent_task.append(gevent.spawn(self.packet)) 
+			gevent_task.append(gevent.spawn(self.packet))
 		for each in range(self.retry_packet_num):
-			gevent_task.append(gevent.spawn(self.retry_packet)) 
+			gevent_task.append(gevent.spawn(self.retry_packet))
 		for each in range(self.message_num):
 			gevent_task.append(gevent.spawn(self.message_queue))
 		for each in range(self.retry_upload_num):
@@ -150,7 +149,7 @@ class SubPackage:
 	def packet(self):
 		while True:
 			if not self.is_run:
-				# sent_log_info(alarm_info_format("warning", "been kill")) 
+				# sent_log_info(alarm_info_format("warning", "been kill"))
 				break
 			logger.debug("开始解任务。。。。。")
 			# 获取消息的redis ,并解码成python格式
