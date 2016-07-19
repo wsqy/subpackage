@@ -20,29 +20,29 @@ redis_host = '2cdd06c0eba54c30.m.cnhza.kvstore.aliyuncs.com'
 redis_port = 6379
 redis_db = 0
 redis_auth = "nhuWq6vgsEypdZF"
-redis_key = "6y:apk:subpackage:task"
-redis_retry_key = "6y:apk:subpackage:retrytask"
-redis_sleep_time = 3
+task_store_key = "6y:apk:subpackage:task"
+task_store_retry_key = "6y:apk:subpackage:retrytask"
+no_task_sleep_time = 3
 
-#基本的打包状态消息
+# 基本的打包状态消息
 status_code = {
 
     #101 打包未进行
-    'NO_READY' : {'statusCode': 101, 'message': "打包未开始"},
+    'NO_READY' : {'errorCode': 101, 'message': "打包未开始"},
 
     # 201正常
-    'COMPLETE' : {'statusCode': 201, 'message': "打包已完成"},
+    'COMPLETE' : {'errorCode': 201, 'message': "打包已完成"},
 
     #4XX 基本错误类型
-    'ARG_MISS' : {'statusCode': 401, 'message':  "参数不完整，请检查"},
-    'NO_APK': {'statusCode': 402, 'message': "游戏母包不存在"},
-    'HAVEN_SUB': {'statusCode': 403, 'message': "游戏已分包，请勿重复操作"},
-    'WRONG_APK': {'statusCode': 404, 'message': "apk文件不能正常读取"},
-    'COPY_APK_ERROR': {'statusCode': 405, 'message': "无法创建文件,打包失败,请联系管理员"},
-    'PERM_ERROR': {'statusCode': 406, 'message': "无法读取游戏母包, 请设置好访问权限"},
+    'ARG_MISS' : {'errorCode': 401, 'message':  "参数不完整，请检查"},
+    'NO_APK': {'errorCode': 402, 'message': "游戏母包不存在"},
+    'HAVEN_SUB': {'errorCode': 403, 'message': "游戏已分包，请勿重复操作"},
+    'WRONG_APK': {'errorCode': 404, 'message': "apk文件不能正常读取"},
+    'COPY_APK_ERROR': {'errorCode': 405, 'message': "无法创建文件,打包失败,请联系管理员"},
+    'PERM_ERROR': {'errorCode': 406, 'message': "无法读取游戏母包, 请设置好访问权限"},
 
     # 5XX 特殊异常
-    'UNKNOWN_ERROR': {'statusCode': 501, 'message': "UNKNOWN_ERROR"},
+    'UNKNOWN_ERROR': {'errorCode': 501, 'message': "UNKNOWN_ERROR"},
 
 }
 
@@ -100,7 +100,7 @@ storage_config = {
 # 定义日志相关配置
 
 # 日志文件夹的根目录
-logging_directory_path = ''
+logging_directory_path = 'log'
 
 # 日志配置文件
 def logging_file_path(filename):

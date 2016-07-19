@@ -10,49 +10,11 @@ import tempfile
 from AxmlParserPY import apk
 import settings
 import random
-
+import packetResponse
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
 
-
-class Response:
-    def __init__(self):
-        self.status = False
-        self.status_key = "NO_READY"
-        self.status_code = "101"
-        self.status_message = "打包未开始"
-        self.filename = None
-
-    def set_status(self, status):
-        self.status = status
-
-    def set_status_key(self, status_key):
-        self.status_key = status_key
-
-    def set_message(self,message):
-        self.status_message = message
-
-    def set_filename(self,filename):
-        self.filename = filename
-
-    def get_status(self):
-        return self.status
-
-    def get_status_key(self):
-        return self.status_key
-
-    def get_status_code(self):
-        return settings.status_code.get(self.status_key).get("statusCode")
-
-    def get_message(self):
-        return settings.status_code.get(self.status_key).get("message")
-
-    def get_filename(self):
-        return self.filename
-
-    def __unicode__(self):
-        return self.get_status_key()
 
 sdk_game_path = settings.sdk_game_path
 if not sdk_game_path:
@@ -142,7 +104,7 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
 
 
 def subpackage(filename=None, channel_id=None, extend=None):
-    response = Response()
+    response = packetResponse.Response()
     # 确认参数完整性
     if not filename or not channel_id:
         response.set_status_key('ARG_MISS')
@@ -196,6 +158,7 @@ def subpackage(filename=None, channel_id=None, extend=None):
     response.set_status("True")
     response.set_status_key("COMPLETE")
     response.set_filename(channel_file)
+    response.set_packet_dir_path(filename)
     return response
 
 
