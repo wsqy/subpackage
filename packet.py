@@ -11,10 +11,9 @@ from AxmlParserPY import apk
 import settings
 import random
 
-import logging
 import logging.config
-logging.config.fileConfig("logging.conf")
-logger = logging.getLogger("")
+logging.config.dictConfig(settings.LOGGING)
+logger = logging.getLogger('mylogger')
 
 
 class Response:
@@ -172,7 +171,7 @@ def subpackage(filename=None, channel_id=None, extend=None):
             return response
     except Exception, e:
         response.set_status_key('WRONG_APK')
-        logger.debug(e)
+        logger.error(e)
         response.set_message(e)
         return response
 
@@ -189,7 +188,7 @@ def subpackage(filename=None, channel_id=None, extend=None):
     except Exception, e:
         response.set_status(False)   # fixme ,默认为失败
         response.set_status_key('UNKNOWN_ERROR')
-        logger.debug(e)
+        logger.error(e)
         response.set_special_message(e)
         return response
 

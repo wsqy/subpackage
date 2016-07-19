@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding:utf-8
-import logging
 import os
 
 
@@ -67,3 +66,96 @@ tempfile_dir = '/tmp'
 random_chr = 'abcdefghjkmnpqrstuvwxyz23456789QWERTYUIPASDFGHJKLMNBVCXZ'
 
 debug = False
+
+
+# 设置云服务器类型 ks or oss及其基本配置
+# storageList = ['oss1', 'ks1']
+storageList = ['oss1']
+
+storage_config = {
+    "ks1": {
+        "DRIVER": 'KSUpload',
+        "AccessKey": 'gmvu0UYj0kwrTOoIIrcp',
+        "SecretKey": '+pekrcxq1qR+oZ69Zahp6+gzYREDuT0TBEeSsy9e',
+        "bucketName": 'sh-osstest',
+        "ENDPOINT": 'ks3-cn-shanghai-internal.ksyun.com',
+        "file_chunk_size": 20*1024*1024,
+        "file_critical_size": 50*1024*1024,
+        "basedir": "sdkgame",
+    },
+    "oss1": {
+        "DRIVER": 'OSSUpload',
+        "DOMAIN": "http://downapk.6y.com.cn/",
+        "ACCESS_ID": "VPaDmdb3VoNB0k6t",
+        "ACCESS_KEY": "jY1CoUcoKamDbaZZUIENIsRjfpTNCI",
+        "ENDPOINT": "oss-cn-hangzhou-internal.aliyuncs.com",
+        "BUCKET": "moge666",
+        "file_chunk_size": 20*1024*1024,
+        "file_critical_size": 50*1024*1024,
+        "basedir": "sdkgame",
+    },
+}
+
+
+# 定义日志相关配置
+
+# 日志文件夹的根目录
+logging_directory_path = ''
+
+# 日志配置文件
+def logging_file_path(filename):
+    return os.path.join(logging_directory_path, filename)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        }
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        },
+        'notes': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': logging_file_path('all.log'),
+            'maxBytes': 1024 * 1024 * 10,
+            'backupCount': 5,
+            'formatter': 'default',
+        },
+        'scripts': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': logging_file_path('scripts.log'),
+            'maxBytes': 1024 * 1024 * 10,
+            'backupCount': 5,
+            'formatter': 'default',
+        },
+        'errors': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': logging_file_path('error.log'),
+            'maxBytes': 1024 * 1024 * 10,
+            'backupCount': 5,
+            'formatter': 'default',
+        },
+    },
+    'loggers': {
+        # 定义了一个logger
+        'mylogger': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'notes', 'scripts', 'errors'],
+            'propagate': True
+        }
+    }
+}
