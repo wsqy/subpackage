@@ -131,18 +131,26 @@ class SubPackage:
                     self.upload_subpackage_dict[k] = v
                     self.upload_cloud(conf)
 
-    def upload_cloud(self, conf):
+    def get_cloud_file_path(self, conf):
         filename = conf.get("filename")
-        # logger.debug(filename)
         # apk_base_path = os.path.basename(filename).split("_")[0]
         apk_base_path = conf.get("packet_dir_path")
         cloud_filename = os.path.join(conf.get("basedir", ""), apk_base_path, os.path.basename(filename))
-        logger.debug(cloud_filename)
+        return cloud_filename
+
+    def get_driver_hand_way(self, conf, upload_file):
         driver = conf.get("DRIVER")
         upload_module = __import__("UploadFile." + driver)
         up_driver = getattr(getattr(upload_module, driver), driver)
         h_driver = up_driver(conf)
         upload_file = getattr(h_driver, "upload_file")
+        return upload_file
+
+    def upload_cloud(self, conf):
+        filename = conf.get("filename")
+        cloud_filename = self.get_cloud_file_path(conf)
+        logger.debug(cloud_filename)
+        upload_file = self.get_driver_hand_way(conf, "upload_file")
         try:
             upload_file(cloud_filename, filename)
         except Exception, e:
