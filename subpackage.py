@@ -13,6 +13,7 @@ from setproctitle import setproctitle,getproctitle
 import settings
 import packet
 from loggingInfoSent import alarm_info_format, sent_log_info
+from message_notice import Message
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
@@ -31,8 +32,7 @@ class SubPackage:
         self.packet_num = settings.packet_num
         self.message_num = settings.message_num
         self.retry_upload_num = settings.retry_upload_num
-        self.no_task_sleep_time = settings.no_task_sleep_time
-        self.message_list = []
+        self.message = Message()
         self.upload_subpackage_dict = {}
         self.is_run = True
 
@@ -46,38 +46,11 @@ class SubPackage:
         for each in range(self.retry_packet_num):
             gevent_task.append(gevent.spawn(self.retry_packet)) 
         for each in range(self.message_num):
-            gevent_task.append(gevent.spawn(self.message_queue))
+            gevent_task.append(gevent.spawn(self.message.message_queue()))
         for each in range(self.retry_upload_num):
             gevent_task.append(gevent.spawn(self.get_upload_task))
         gevent.joinall(gevent_task)
 
-    def finish_message_notice(self, Info_url):
-        if settings.debug:
-            logger.debug("任务完成。。。。")
-            return
-        try:
-            response = urllib2.urlopen(Info_url).read()
-            if "success" in response :
-                # 打个成功的日志
-                logger.debug("消息发送成功")
-                logger.debug("上传成功删除文件")
-            elif "miss" in response:
-                sent_log_info(alarm_info_format("notice", "missing"))
-                logger.debug("miss")
-            else:
-                self.message_list.append(Info_url)
-                logger.debug("other")
-        except:
-            logger.debug("url不可达")
-            self.message_list.append(Info_url)
-
-    def message_queue(self):
-        # 如果通知队列中有消息则发送消息
-        if len(self.message_list) == 0:
-            gevent.sleep(self.no_task_sleep_time)
-        else:
-            post_data = self.message_list.pop()
-            self.finish_message_notice(post_data)
 
     def get_packet_error_time(self, data):
         return data.get("extend").get("packet_timeout", None)
@@ -123,7 +96,7 @@ class SubPackage:
                     # 全部上传成功，做一个通知 url = v[1]
                     logger.info("上传成功,删除子包")
                     os.remove(k)
-                    self.finish_message_notice(v[1])
+                    self.message.finish_message_notice(v[1])
                     continue
                 else:
                     conf = v[2].pop()
