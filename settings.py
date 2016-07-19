@@ -25,7 +25,7 @@ task_store_retry_key = "6y:apk:subpackage:retrytask"
 no_task_sleep_time = 3
 
 # 基本的打包状态消息
-status_code = {
+packageInfo = {
 
     #101 打包未进行
     'NO_READY' : {'errorCode': 101, 'message': "打包未开始"},

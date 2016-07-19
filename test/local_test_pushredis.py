@@ -6,6 +6,7 @@ data = {
     'channel_id': 11,
     'extend': {
         'channel_version': '1.07',
+        'enforcement' : '111',
     },
     'finish_notice_url': 'http://192.168.5.20/test3.php',
 }

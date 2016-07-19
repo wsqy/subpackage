@@ -21,6 +21,7 @@ default_encoding = 'utf-8'
 if sys.getdefaultencoding() != default_encoding:
     reload(sys)
     sys.setdefaultencoding(default_encoding)
+
 setproctitle('subpackage')
 
 
@@ -34,7 +35,6 @@ class SubPackage:
         self.message_list = []
         self.upload_subpackage_dict = {}
         self.is_run = True
-        self.log_post_time = settings.log_post_time
 
     def setQuit(self, pid, signal_num):
         self.is_run = False
@@ -79,6 +79,14 @@ class SubPackage:
             post_data = self.message_list.pop()
             self.finish_message_notice(post_data)
 
+    def get_packet_error_time(self, data):
+        return data.get("extend").get("packet_timeout", None)
+
+    def get_task_hand_way(self, access_way):
+        task_type = settings.task_type.capitalize() + "Obj"
+        upload_module = __import__("PacketRequest." + task_type)
+        up_access = getattr(getattr(upload_module, task_type), task_type)
+        return getattr(up_access(), access_way)
 
     def subpackage_upload_handle(self, response, data_loads):
         message = response.get_status_key()
@@ -89,13 +97,11 @@ class SubPackage:
             self.get_upload_info(filename, finish_url)
         else:
             # 错误的扔进redis, 并检测是否有消息超时时间，如果没有则添加此时间为当前时间的后log_post_time 秒
-            if not data_loads.get("extend").get("packet_timeout", None):
-                data_loads["extend"]["packet_timeout"] = time.time() + self.log_post_time
+            error_time = self.get_packet_error_time(data_loads)
+            if not error_time:
+                data_loads["extend"]["packet_timeout"] = time.time() + settings.log_post_time
             data_loads["extend"]["error_key"] = message
-            task_type = settings.task_type.capitalize()+"Obj"
-            upload_module = __import__("PacketRequest." + task_type)
-            up_access= getattr(getattr(upload_module, task_type), task_type)
-            push_task = getattr(up_access(), "push_task")
+            push_task = self.get_task_hand_way("push_task")
             push_task(settings.task_store_retry_key, data_loads)
 
     def get_upload_info(self, filename, notice_url):
@@ -143,15 +149,24 @@ class SubPackage:
             self.upload_subpackage_dict.get(filename)[2].append(conf)
 
     def get_data_info(self, retry=False):
-        task_type = settings.task_type.capitalize() + "Obj"
-        upload_module = __import__("PacketRequest." + task_type)
-        up_access = getattr(getattr(upload_module, task_type), task_type)
-        get_task = getattr(up_access(), "get_task")
+        get_task = self.get_task_hand_way("get_task")
         if retry:
             data_loads = get_task(settings.task_store_key)
         else:
             data_loads = get_task(settings.task_store_retry_key)
         return data_loads
+
+    def package_task(self, data_loads):
+        logger.debug("开始分包。。。。")
+        startTime = time.time()
+        response = packet.subpackage(filename=data_loads.get("filename"),
+                                     channel_id=data_loads.get("channel_id"),
+                                     extend=data_loads.get("extend"),
+                                     )
+        endTime = time.time()
+        spendTime = endTime - startTime
+        logger.debug("subpackage spent %f second." % spendTime)
+        return response
 
     def packet(self):
         while True:
@@ -161,36 +176,24 @@ class SubPackage:
             logger.debug("开始解任务。。。。。")
             # 获取消息的redis ,并解码成python格式
             data_loads = self.get_data_info()
-            logger.debug("开始分包。。。。")
-            startTime = time.time()
-            response = packet.subpackage(filename=data_loads.get("filename"),
-                                         channel_id=data_loads.get("channel_id"),
-                                         extend=data_loads.get("extend"),
-                                         )
-            endTime = time.time()
-            spendTime = endTime - startTime
-            logger.debug("subpackage spent %f second." % spendTime)
+            response = self.package_task(data_loads)
             logger.debug(response.get_status_key())
             self.subpackage_upload_handle(response, data_loads)
+
+    def packet_error_time_handle(self, data_loads):
+        error_time = self.get_packet_error_time(data_loads)
+        if (error_time) and time.time() > error_time:
+            sent_log_info(alarm_info_format(
+                "error", data_loads.get("extend").get("error_key")))
 
     def retry_packet(self):
         while True:
             if not self.is_run:
                 # sent_log_info(alarm_info_format("warning", "been kill"))
                 break
-            # 获取消息的redis ,并解码成python格式
             data_loads = self.get_data_info(retry=True)
-            # filename channel_id channel_version finish_notice_url 如果有
-            # 检查是否有超时时间，是否超过半个小时
-            error_time = data_loads.get("extend").get("packet_timeout", None)
-            if (error_time) and time.time() > error_time:
-                sent_log_info(alarm_info_format(
-                    "error", data_loads.get("extend").get("error_key")))
-            # subpackage(filename, channel_id, extend)
-            response = packet.subpackage(filename=data_loads.get("filename"),
-                                         channel_id=data_loads.get("channel_id"),
-                                         extend=data_loads.get("extend"),
-                                         )
+            self.packet_error_time_handle(data_loads)
+            response = self.package_task(data_loads)
             logger.debug(response.get_status_key())
             self.subpackage_upload_handle(response, data_loads)
 

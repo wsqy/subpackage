@@ -4,6 +4,7 @@ Redis 数据格式:
 		'channel_id': 11,
 		'extend': {
 			'channel_version': '1.0',
+			'enforcement': ---------强制打包标志，如果需要强制打包，则需要此参数，参数值任意;如果不需要强制打包则不需要此参数，
 		}
 		'finish_notice_url': 'http://xxxx.xxx.com/xxxx.php'		// // 本身打包程序只通知一次, 再丢队列, 让通知程序去多次通知
 	}

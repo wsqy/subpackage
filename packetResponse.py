@@ -33,10 +33,10 @@ class Response:
         return self.status_key
 
     def get_error_code(self):
-        return settings.error_code.get(self.status_key).get("errorCode")
+        return settings.packageInfo.get(self.status_key).get("errorCode")
 
     def get_message(self):
-        return settings.error_code.get(self.status_key).get("message")
+        return settings.packageInfo.get(self.status_key).get("message")
 
     def get_filename(self):
         return self.filename
