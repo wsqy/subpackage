@@ -110,7 +110,6 @@ def subpackage(filename=None, channel_id=None, extend=None):
         response.set_status_key('ARG_MISS')
         return response
 
-
     # 检查游戏母包是否存在
     source_file = make_parent_package_file(filename)
     if not os.path.exists(source_file):
@@ -127,9 +126,10 @@ def subpackage(filename=None, channel_id=None, extend=None):
     try:
         version_name = get_apk_version(source_file)
         channel_file = make_sub_package_file(filename, channel_id, version_name)
-        if os.path.exists(channel_file):   # TODO: 如果有强制打包标识，强制打包
+        if os.path.exists(channel_file) and "enforcement" not in extend:
             response.set_status_key('HAVEN_SUB')
             response.set_filename(channel_file)
+            response.set_packet_dir_path(filename)
             return response
     except Exception, e:
         response.set_status_key('WRONG_APK')
@@ -141,19 +141,18 @@ def subpackage(filename=None, channel_id=None, extend=None):
     if not copyfile(source_file, channel_file):
         my_chmod(channel_file)
     else:
-         response.set_status_key('COPY_APK_ERROR')
-         return response
+        response.set_status_key('COPY_APK_ERROR')
+        return response
 
     # 开始分包
     try:
         unpack(channel_file, channel_id, extend, version_name)
     except Exception, e:
-        response.set_status(False)   # fixme ,默认为失败
+        response.set_status(False)
         response.set_status_key('UNKNOWN_ERROR')
         logger.error(e)
-        response.set_special_message(e)
+        response.set_message(e)
         return response
-
 
     response.set_status("True")
     response.set_status_key("COMPLETE")
