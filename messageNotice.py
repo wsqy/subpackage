@@ -2,7 +2,7 @@
 # coding:utf-8
 import settings
 import urllib2
-import time
+import gevent
 from loggingInfoSent import alarm_info_format, sent_log_info
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
@@ -13,7 +13,6 @@ class Message:
     def __init__(self):
         self.no_task_sleep_time = settings.no_task_sleep_time
         self.message_list = []
-
 
     def finish_message_notice(self, Info_url):
         if settings.debug:
@@ -35,11 +34,10 @@ class Message:
             logger.debug("url不可达")
             self.message_list.append(Info_url)
 
-
     def message_queue(self):
         # 如果通知队列中有消息则发送消息
         if len(self.message_list) == 0:
-            time.sleep(self.no_task_sleep_time)
+            gevent.sleep(self.no_task_sleep_time)
         else:
             post_data = self.message_list.pop()
             self.finish_message_notice(post_data)
