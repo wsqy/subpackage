@@ -2,7 +2,7 @@
 
 
 from abc import ABCMeta, abstractmethod
-from UploadFile import upload_config
+
 
 
 class BaseUpload(object):

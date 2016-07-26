@@ -1,13 +1,11 @@
 #!/bin/env python2.7
 # coding:utf-8
-
 import signal
 import time
 from gevent import monkey
 monkey.patch_all()
 import gevent
 from setproctitle import setproctitle,getproctitle
-
 import settings
 import packet
 from loggingInfoSent import alarm_info_format, sent_log_info
@@ -50,16 +48,19 @@ class SubPackage:
             gevent_task.append(gevent.spawn(self.upload.get_upload_task))
         gevent.joinall(gevent_task)
 
-
-
-
     def get_packet_error_time(self, data):
         return data.get("extend").get("packet_timeout", None)
 
+    def packet_error_time_handle(self, data_loads):
+        error_time = self.get_packet_error_time(data_loads)
+        if (error_time) and time.time() > error_time:
+            sent_log_info(alarm_info_format(
+                "error", data_loads.get("extend").get("error_key")))
+
     def get_task_hand_way(self, access_way):
-        task_type = settings.task_type.capitalize() + "Obj"
-        upload_module = __import__("PacketRequest." + task_type)
-        up_access = getattr(getattr(upload_module, task_type), task_type)
+        task_type = settings.task_type.capitalize()+"Obj"
+        task_module = __import__("PacketRequest."+task_type, globals(), locals(), [task_type])
+        up_access = getattr(task_module, task_type)
         return getattr(up_access(), access_way)
 
     def subpackage_upload_handle(self, response, data_loads):
@@ -77,8 +78,6 @@ class SubPackage:
             data_loads["extend"]["error_key"] = message
             push_task = self.get_task_hand_way("push_task")
             push_task(settings.task_store_retry_key, data_loads)
-
-
 
     def get_data_info(self, retry=False):
         get_task = self.get_task_hand_way("get_task")
@@ -112,12 +111,6 @@ class SubPackage:
             logger.debug(response.get_status_key())
             self.subpackage_upload_handle(response, data_loads)
 
-    def packet_error_time_handle(self, data_loads):
-        error_time = self.get_packet_error_time(data_loads)
-        if (error_time) and time.time() > error_time:
-            sent_log_info(alarm_info_format(
-                "error", data_loads.get("extend").get("error_key")))
-
     def retry_packet(self):
         while True:
             if not self.is_run:
@@ -135,3 +128,4 @@ if __name__ == "__main__":
         p = SubPackage()
         signal.signal(signal.SIGHUP, p.setQuit)
         p.gevent_join()
+        print(p, sys.stdout("a.txt"))

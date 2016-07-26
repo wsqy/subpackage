@@ -9,6 +9,7 @@ import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
 
+
 class Upload:
     def __init__(self):
         self.upload_subpackage_dict = {}
@@ -49,11 +50,11 @@ class Upload:
         cloud_filename = os.path.join(conf.get("basedir", ""), apk_base_path, os.path.basename(filename))
         return cloud_filename
 
-    def get_driver_hand_way(self, conf, upload_file):
+    def get_driver_hand_way(self, conf):
         driver = conf.get("DRIVER")
-        upload_module = __import__("UploadFile." + driver)
-        up_driver = getattr(getattr(upload_module, driver), driver)
-        h_driver = up_driver(conf)
+        upload_module = __import__("UploadFile." + driver, globals(), locals(), [driver])
+        h_driver = getattr(upload_module, driver)
+        h_driver = h_driver(conf)
         upload_file = getattr(h_driver, "upload_file")
         return upload_file
 
@@ -61,7 +62,7 @@ class Upload:
         filename = conf.get("filename")
         cloud_filename = self.get_cloud_file_path(conf)
         logger.debug(cloud_filename)
-        upload_file = self.get_driver_hand_way(conf, "upload_file")
+        upload_file = self.get_driver_hand_way(conf)
         try:
             upload_file(cloud_filename, filename)
         except Exception, e:
@@ -69,3 +70,4 @@ class Upload:
             # 将文件名封装进这个字典
             self.upload_subpackage_dict.get(filename)[0] += 1
             self.upload_subpackage_dict.get(filename)[2].append(conf)
+

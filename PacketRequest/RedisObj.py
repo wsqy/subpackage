@@ -2,13 +2,13 @@
 import time
 import json
 import redis
-from baseObj import baseObj
+from BaseObj import BaseObj
 import settings
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
 
-class RedisObj(baseObj):
+class RedisObj(BaseObj):
 	def __init__(self):
 		self.__redis_host = settings.redis_host
 		self.__redis_port = settings.redis_port

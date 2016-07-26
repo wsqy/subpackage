@@ -2,7 +2,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class baseObj(object):
+class BaseObj(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, configuration):
