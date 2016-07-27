@@ -11,6 +11,7 @@ import packet
 from loggingInfoSent import alarm_info_format, sent_log_info
 from messageNotice import Message
 from subpackageUpload import Upload
+import task
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
@@ -57,34 +58,38 @@ class SubPackage:
             sent_log_info(alarm_info_format(
                 "error", data_loads.get("extend").get("error_key")))
 
-    def get_task_hand_way(self, access_way):
-        task_type = settings.task_type.capitalize()+"Obj"
-        task_module = __import__("PacketRequest."+task_type, globals(), locals(), [task_type])
-        up_access = getattr(task_module, task_type)
-        return getattr(up_access(), access_way)
 
     def subpackage_upload_handle(self, response, data_loads):
         message = response.get_status_key()
+        # TODO 从进度task key里删除 data_loads
+        delete_task = task.get_task_hand_way("delete_task")
+        delete_task(settings.task_schedule_key, data_loads)
         if message == "COMPLETE" or message == "HAVEN_SUB":
             filename = response.get_filename()
-            finish_url = data_loads.get("finish_notice_url")
+            response.notice_url = data_loads.get("finish_notice_url")
             logger.debug(" 准备上传%s。。。。。。" % filename)
-            self.upload.get_upload_info(response, finish_url)
+            # TODO 把response信息扔到 进度uploadfile key里
+            push_task = task.get_task_hand_way("push_task")
+            push_task(settings.upload_file_schedule_key, response)
+            self.upload.get_upload_info(response)
         else:
             # 错误的扔进redis, 并检测是否有消息超时时间，如果没有则添加此时间为当前时间的后log_post_time 秒
             error_time = self.get_packet_error_time(data_loads)
             if not error_time:
                 data_loads["extend"]["packet_timeout"] = time.time() + settings.log_post_time
             data_loads["extend"]["error_key"] = message
-            push_task = self.get_task_hand_way("push_task")
+            push_task = task.get_task_hand_way("push_task")
             push_task(settings.task_store_retry_key, data_loads)
 
     def get_data_info(self, retry=False):
-        get_task = self.get_task_hand_way("get_task")
+        get_task = task.get_task_hand_way("get_task")
         if retry:
             data_loads = get_task(settings.task_store_key)
         else:
             data_loads = get_task(settings.task_store_retry_key)
+        #   todo 把data_loads信息扔到 进度task key里
+        push_task = task.get_task_hand_way("push_task")
+        push_task(settings.task_schedule_key, data_loads)
         return data_loads
 
     def package_task(self, data_loads):

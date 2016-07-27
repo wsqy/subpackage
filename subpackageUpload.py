@@ -4,6 +4,7 @@
 import os
 import gevent
 import settings
+import task
 from messageNotice import Message
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
@@ -16,14 +17,17 @@ class Upload:
         self.no_task_sleep_time = settings.no_task_sleep_time
         self.message = Message()
 
-    def get_upload_info(self, response, notice_url):
+    def get_upload_info(self, response):
         filename = response.get_filename()
-        self.upload_subpackage_dict[filename] = [len(settings.storageList), notice_url, []]
+        self.upload_subpackage_dict[filename] = [len(settings.storageList), response.notice_url, []]
         for st in settings.storageList:
             conf = settings.storage_config.get(st)
             conf["filename"] = filename
             conf["packet_dir_path"] = response.get_packet_dir_path()
             self.upload_subpackage_dict.get(filename)[2].append(conf)
+        # TODO 把response信息从 进度uploadfile key里删除
+        delete_task = task.get_task_hand_way("delete_task")
+        delete_task(settings.task_schedule_key, response)
 
 
     def get_upload_task(self):

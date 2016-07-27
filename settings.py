@@ -11,7 +11,7 @@ retry_packet_num = 3
 message_num = 1
 
 # 上传失败的尝试进程数
-retry_upload_num =1
+retry_upload_num = 1
 
 # 消息存储方式
 task_type = "redis"
@@ -23,6 +23,9 @@ redis_auth = "nhuWq6vgsEypdZF"
 task_store_key = "6y:apk:subpackage:task"
 task_store_retry_key = "6y:apk:subpackage:retrytask"
 no_task_sleep_time = 3
+
+task_schedule_key = "6y:apk:subpackage:task:schedule:task"
+upload_file_schedule_key = "6y:apk:subpackage:task:schedule:uploadfile"
 
 # 基本的打包状态消息
 packageInfo = {
