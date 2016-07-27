@@ -25,21 +25,27 @@ class Upload:
             conf["packet_dir_path"] = response.get_packet_dir_path()
             self.upload_subpackage_dict.get(filename)[2].append(conf)
 
+
     def get_upload_task(self):
         while True:
             if len(self.upload_subpackage_dict) == 0:
-                gevent.sleep(2)
+                gevent.sleep(self.no_task_sleep_time)
             else:
                 k, v = self.upload_subpackage_dict.popitem()
-                if v[0] == 0:
+                if v[0] <= 0:
                     # 全部上传成功，做一个通知 url = v[1]
                     logger.info("上传成功,删除子包")
                     os.remove(k)
                     self.message.finish_message_notice(v[1])
                     continue
+                elif len(v[2]) == 0:
+                    self.upload_subpackage_dict[k] = v
+                    logger.debug("还有子包正在上传中，稍微再次尝试删除")
+                    gevent.sleep(self.no_task_sleep_time)
                 else:
                     conf = v[2].pop()
-                    v[0] -= 1
+                    # self.upload_cloud(conf)
+                    # v[0] -= 1
                     self.upload_subpackage_dict[k] = v
                     self.upload_cloud(conf)
 
@@ -65,9 +71,10 @@ class Upload:
         upload_file = self.get_driver_hand_way(conf)
         try:
             upload_file(cloud_filename, filename)
+            self.upload_subpackage_dict.get(filename)[0] -= 1
         except Exception, e:
-            logger.error(e, filename, "失败重传--------")
+            logger.error(e)
             # 将文件名封装进这个字典
-            self.upload_subpackage_dict.get(filename)[0] += 1
+            # self.upload_subpackage_dict.get(filename)[0] += 1
             self.upload_subpackage_dict.get(filename)[2].append(conf)
 
