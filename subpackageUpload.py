@@ -29,7 +29,6 @@ class Upload:
         delete_task = task.get_task_hand_way("delete_task")
         delete_task(settings.task_schedule_key, response)
 
-
     def get_upload_task(self):
         while True:
             if len(self.upload_subpackage_dict) == 0:

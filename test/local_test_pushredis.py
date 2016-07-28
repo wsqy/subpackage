@@ -2,7 +2,7 @@
 import redis
 import json
 data = {
-    'filename': '2',
+    'filename': '1',
     'channel_id': 11,
     'extend': {
         'channel_version': '0.7',
@@ -18,6 +18,11 @@ print r.lpush(redis_key, json.dumps(data))
 # print r.rpop("greet")
 
 # print(r.lpush("greet", data))
-# print(r.llen("greet"))
-# print(r.lrange("greet",0,1))
-# print(r.lrem("greet", data, 1))
+# print(r.llen("6y:apk:subpackage:task:schedule:task"))
+# print(r.llen("6y:apk:subpackage:task:schedule:uploadfile"))
+# print(r.lrange("6y:apk:subpackage:task:schedule:task", 0, 1))
+# print(r.lrange("6y:apk:subpackage:task:schedule:uploadfile", 0, 2))
+# print(r.lrem("6y:apk:subpackage:task:schedule:task", data, 2))
+# print r.rpop("6y:apk:subpackage:task:schedule:task")
+# print r.rpop("6y:apk:subpackage:task:schedule:uploadfile")
+# print(r.llen("task_store_retry_key"))

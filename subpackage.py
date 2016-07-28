@@ -5,7 +5,7 @@ import time
 from gevent import monkey
 monkey.patch_all()
 import gevent
-from setproctitle import setproctitle,getproctitle
+from setproctitle import setproctitle, getproctitle
 import settings
 import packet
 from loggingInfoSent import alarm_info_format, sent_log_info
@@ -57,7 +57,6 @@ class SubPackage:
         if (error_time) and time.time() > error_time:
             sent_log_info(alarm_info_format(
                 "error", data_loads.get("extend").get("error_key")))
-
 
     def subpackage_upload_handle(self, response, data_loads):
         message = response.get_status_key()
@@ -133,4 +132,3 @@ if __name__ == "__main__":
         p = SubPackage()
         signal.signal(signal.SIGHUP, p.setQuit)
         p.gevent_join()
-        print(p, sys.stdout("a.txt"))
