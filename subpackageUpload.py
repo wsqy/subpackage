@@ -18,12 +18,12 @@ class Upload:
         self.message = Message()
 
     def get_upload_info(self, response):
-        filename = response.get_filename()
-        self.upload_subpackage_dict[filename] = [len(settings.storageList), response.notice_url, []]
+        filename = response["filename"]
+        self.upload_subpackage_dict[filename] = [len(settings.storageList), response["notice_url"], []]
         for st in settings.storageList:
             conf = settings.storage_config.get(st)
             conf["filename"] = filename
-            conf["packet_dir_path"] = response.get_packet_dir_path()
+            conf["packet_dir_path"] = response["packet_dir_path"]
             self.upload_subpackage_dict.get(filename)[2].append(conf)
         # TODO 把response信息从 进度uploadfile key里删除
         delete_task = task.get_task_hand_way("delete_task")
