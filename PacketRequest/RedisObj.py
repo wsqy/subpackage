@@ -19,14 +19,14 @@ class RedisObj(BaseObj):
 
 
     def get_redis_pool(self):
-        redisHandler = redis.ConnectionPool(host=self.__redis_host,
+        redis_handler = redis.ConnectionPool(host=self.__redis_host,
                            port=self.__redis_port, db=self.__redis_db, password=self.__redis_auth)
         if self.__redis_auth.strip() != '':
             pass
 
-        return redisHandler
+        return redis_handler
 
-    def get_task(self, key, is_obj=False):
+    def get_task(self, key):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         task_info = redis_con.rpop(key)
         while not task_info:
@@ -36,10 +36,13 @@ class RedisObj(BaseObj):
         task_info = json.loads(task_info)
         return task_info
 
-    def push_task(self, key, data):
+    def push_task(self, key, data, reverse=False):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         data = json.dumps(data)
-        redis_con.lpush(key, data)
+        if reverse:
+            redis_con.rpush(key, data)
+        else:
+            redis_con.lpush(key, data)
 
     def delete_task(self, key, data):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())

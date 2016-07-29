@@ -26,10 +26,10 @@ setproctitle('subpackage')
 
 class SubPackage:
     def __init__(self):
-        self.retry_packet_num = settings.retry_packet_num
-        self.packet_num = settings.packet_num
-        self.message_num = settings.message_num
-        self.retry_upload_num = settings.retry_upload_num
+        self.retry_packet_count = settings.retry_packet_count
+        self.packet_count = settings.packet_count
+        self.message_count = settings.message_count
+        self.retry_upload_count = settings.retry_upload_count
         self.message = Message()
         self.upload = Upload()
         self.is_run = True
@@ -57,7 +57,7 @@ class SubPackage:
             push_task = task.get_task_hand_way("push_task")
             for len in range(upload_task_len):
                 tasks = get_task(key_source)
-                push_task(key_target, tasks)
+                push_task(key_target, tasks, reverse=True)
         else:
             logger.debug("没有待恢复的任务.......")
 
@@ -67,17 +67,15 @@ class SubPackage:
         logger.debug("准备恢复打包任务。。。")
         self.task_restore_data()
 
-
-
     def gevent_join(self):
         gevent_task = [] 
-        for each in range(self.packet_num):
+        for each in range(self.packet_count):
             gevent_task.append(gevent.spawn(self.packet)) 
-        for each in range(self.retry_packet_num):
+        for each in range(self.retry_packet_count):
             gevent_task.append(gevent.spawn(self.retry_packet)) 
-        for each in range(self.message_num):
+        for each in range(self.message_count):
             gevent_task.append(gevent.spawn(self.message.message_queue()))
-        for each in range(self.retry_upload_num):
+        for each in range(self.retry_upload_count):
             gevent_task.append(gevent.spawn(self.upload.get_upload_task))
         gevent.joinall(gevent_task)
 
@@ -92,7 +90,7 @@ class SubPackage:
 
     def subpackage_upload_handle(self, response, data_loads):
         message = response.get_status_key()
-        # TODO 从进度task key里删除 data_loads
+        # 任务恢复:  从进度task key里删除 data_loads
         delete_task = task.get_task_hand_way("delete_task")
         delete_task(settings.task_schedule_key, data_loads)
         if message == "COMPLETE" or message == "HAVEN_SUB":
@@ -104,7 +102,7 @@ class SubPackage:
                 "notice_url": response.notice_url,
                 "packet_dir_path":response.get_packet_dir_path()
             }
-            # TODO 把response信息扔到 进度uploadfile key里,这里把class转成了dict方便json转换
+            #  任务恢复: 把response信息扔到 进度uploadfile key里,这里把class转成了dict方便json转换
             push_task = task.get_task_hand_way("push_task")
             push_task(settings.upload_file_schedule_key, res)
             self.upload.get_upload_info(res)
@@ -123,7 +121,7 @@ class SubPackage:
             data_loads = get_task(settings.task_store_key)
         else:
             data_loads = get_task(settings.task_store_retry_key)
-        #   todo 把data_loads信息扔到 进度task key里
+        #   任务恢复: 把data_loads信息扔到 进度task key里
         push_task = task.get_task_hand_way("push_task")
         push_task(settings.task_schedule_key, data_loads)
         return data_loads

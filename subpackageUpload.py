@@ -25,7 +25,7 @@ class Upload:
             conf["filename"] = filename
             conf["packet_dir_path"] = response["packet_dir_path"]
             self.upload_subpackage_dict.get(filename)[2].append(conf)
-        # TODO 把response信息从 进度uploadfile key里删除
+        # 任务恢复:  把response信息从 进度uploadfile key里删除
         delete_task = task.get_task_hand_way("delete_task")
         delete_task(settings.task_schedule_key, response)
 
@@ -37,13 +37,12 @@ class Upload:
                 k, v = self.upload_subpackage_dict.popitem()
                 if v[0] <= 0:
                     # 全部上传成功，做一个通知 url = v[1]
-                    logger.info("上传成功,删除子包")
+                    logger.info("上传%s成功,删除子包" % (k))
                     os.remove(k)
                     self.message.finish_message_notice(v[1])
                     continue
                 elif len(v[2]) == 0:
                     self.upload_subpackage_dict[k] = v
-                    logger.debug("还有子包正在上传中，稍微再次尝试删除")
                     gevent.sleep(self.no_task_sleep_time)
                 else:
                     conf = v[2].pop()

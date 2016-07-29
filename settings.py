@@ -4,14 +4,14 @@ import os
 
 
 # 主打包进程数
-packet_num = 3
+packet_count = 3
 # 打包失败的尝试进程数
-retry_packet_num = 3
+retry_packet_count = 3
 # 消息通知进程数
-message_num = 1
+message_count = 1
 
 # 上传失败的尝试进程数
-retry_upload_num = 1
+retry_upload_count = 1
 
 # 消息存储方式
 task_type = "redis"
