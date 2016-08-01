@@ -37,9 +37,9 @@ class SubPackage:
     def setQuit(self, pid, signal_num):
         self.is_run = False
 
-    def task_restore_upload(self, key=settings.upload_file_schedule_key):
-        get_len = task.get_task_hand_way("get_len")
-        upload_task_len = get_len(key)
+    def task_resume_upload(self, key=settings.upload_file_schedule_key):
+        get_task_count = task.get_task_hand_way("get_task_count")
+        upload_task_len = get_task_count(key)
         if upload_task_len:
             get_task = task.get_task_hand_way("get_task")
             for len in range(upload_task_len):
@@ -49,9 +49,9 @@ class SubPackage:
         else:
             logger.debug("没有待上传的子包.......")
 
-    def task_restore_data(self, key_source=settings.task_schedule_key, key_target=settings.task_store_key):
-        get_len = task.get_task_hand_way("get_len")
-        upload_task_len = get_len(key_source)
+    def task_resume_subpackage(self, key_source=settings.task_schedule_key, key_target=settings.task_store_key):
+        get_task_count = task.get_task_hand_way("get_task_count")
+        upload_task_len = get_task_count(key_source)
         if upload_task_len:
             get_task = task.get_task_hand_way("get_task")
             push_task = task.get_task_hand_way("push_task")
@@ -61,11 +61,11 @@ class SubPackage:
         else:
             logger.debug("没有待恢复的任务.......")
 
-    def task_restore(self, count=2):
+    def task_resume(self, count=2):
         logger.debug("准备恢复子包上传。。。")
-        self.task_restore_upload()
+        self.task_resume_upload()
         logger.debug("准备恢复打包任务。。。")
-        self.task_restore_data()
+        self.task_resume_subpackage()
 
     def gevent_join(self):
         gevent_task = [] 
@@ -100,7 +100,7 @@ class SubPackage:
             res = {
                 "filename": response.get_filename(),
                 "notice_url": response.notice_url,
-                "packet_dir_path":response.get_packet_dir_path()
+                "packet_dir_path": response.get_packet_dir_path()
             }
             #  任务恢复: 把response信息扔到 进度uploadfile key里,这里把class转成了dict方便json转换
             push_task = task.get_task_hand_way("push_task")
@@ -167,6 +167,6 @@ if __name__ == "__main__":
         p = SubPackage()
         signal.signal(signal.SIGHUP, p.setQuit)
         logger.debug("准备恢复任务现场。。。。。")
-        p.task_restore()
+        p.task_resume()
         logger.debug("任务现场恢复完成，开始接受打包任务。。。。。")
         p.gevent_join()

@@ -49,6 +49,6 @@ class RedisObj(BaseObj):
         data = json.dumps(data)
         redis_con.lrem(key, data, 1)
 
-    def get_len(self, key):
+    def get_task_count(self, key):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         return redis_con.llen(key)
