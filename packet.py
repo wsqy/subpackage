@@ -109,41 +109,43 @@ def subpackage(filename=None, channel_id=None, extend=None):
     if not filename or not channel_id:
         response.set_status_key('ARG_MISS')
         return response
-
     # 检查游戏母包是否存在
     source_file = make_parent_package_file(filename)
     if not os.path.exists(source_file):
         response.set_status_key('NO_APK')
         return response
-
     # 检查游戏母包权限
     if not os.access(source_file, os.R_OK):
         response.set_status_key('PERM_ERROR')
         return response
-
     # 生成channel_file文件名并检查是否存在
     channel_file = ''
     try:
         version_name = get_apk_version(source_file)
         channel_file = make_sub_package_file(filename, channel_id, version_name)
-        if os.path.exists(channel_file) and "enforcement" not in extend:
-            response.set_status_key('HAVEN_SUB')
-            response.set_filename(channel_file)
-            response.set_packet_dir_path(filename)
-            return response
+        if "enforcement" not in extend:
+            enforcement = True
+        else:
+            enforcement = extend.get("enforcement")
+        if os.path.exists(channel_file):
+            if enforcement:
+                response.set_status_key('HAVEN_SUB')
+                response.set_filename(channel_file)
+                response.set_packet_dir_path(filename)
+                return response
+            else:
+                os.remove(channel_file)
     except Exception, e:
         response.set_status_key('WRONG_APK')
         logger.error(e)
         response.set_message(e)
         return response
-
     # 复制母包文件
     if not copyfile(source_file, channel_file):
         my_chmod(channel_file)
     else:
         response.set_status_key('COPY_APK_ERROR')
         return response
-
     # 开始分包
     try:
         unpack(channel_file, channel_id, extend, version_name)
@@ -153,7 +155,6 @@ def subpackage(filename=None, channel_id=None, extend=None):
         logger.error(e)
         response.set_message(e)
         return response
-
     response.set_status("True")
     response.set_status_key("COMPLETE")
     response.set_filename(channel_file)
@@ -162,7 +163,7 @@ def subpackage(filename=None, channel_id=None, extend=None):
 
 
 if __name__ == "__main__":
-    filename = "3"
+    filename = "1"
     channel_id = 13
     extend = {"channel_version": "13"}
     startTime = time.time()
