@@ -1,0 +1,120 @@
+发送打包任务的数据格式:
+	{
+		'filename': 'fuhaoniuniu',		// root_dir/sdkgame/fuhaoniuniu/fuhaoniuniu.apk
+		'channel_id': 11,
+		'extend': {
+			'channel_version': '1.0',
+			'enforcement': //(第二版中修改)新版默认强制打包,如果不需要强制打包，请将此参数设置为False;使用默认的强制打包时不用配置此参数或将此参数设置为True
+		}
+		'finish_notice_url': 'http://xxxx.xxx.com/xxxx.php'		// // 本身打包程序只通知一次, 再丢队列, 让通知程序去多次通知
+	}
+
+失败时push的格式（程序内部的任务，使用者不需要关心）：
+Redis 数据格式:
+	{
+		'filename': 'fuhaoniuniu',		// root_dir/sdkgame/fuhaoniuniu/fuhaoniuniu.apk
+		'channel_id': 11,
+		'extend': {
+			'channel_version': '1.0',
+			‘packet_timeout’：出错时，当前时间的后 log_post_time
+			‘error_key’:出错的简略信息
+		}
+		'finish_notice_url': 'http://xxxx.xxx.com/xxxx.php'		// // 本身打包程序只通知一次, 再丢队列, 让通知程序去多次通知
+	}
+
+	通知结果为: success 时认为成功, miss为包不存在    其他情况均为失败，失败时多次通知
+
+
+    
+
+udp消息日志
+    格式：time.strftime("%Y-%m-%d %H:%M:%S")   level   info
+    级别:
+        notice-----signal检测到SIGHUP事件执行退出
+        waring-----消息发送时报告apk包未找到
+        error------打包失败
+        
+
+        
+
+setting文件：
+    
+    # 第二版将*_num 改为 *_count 
+    packet_count              # 分包主进程数，推荐3左右 
+    retry_packet_count        # 打包失败的尝试进程数，推荐1左右 
+    message_count             # 消息通知进程数，推荐1左右 
+    retry_upload_count        # 上传失败的尝试进程数 ，推荐1左右
+    task_type               # 消息存储方式  暂时只支持 "redis"
+    
+    # redis的基本信息
+    redis_host              # redis的主机名
+    redis_port              # redis的端口
+    redis_db                # redis的库名
+    redis_redis_auth        # redis的认证方式
+    redis_key               # redis的key值
+    redis_retry_key         # redis的重试key值
+    redis_sleep_time = 10   # 取不到任务时 redis的重试时间
+    
+    # 第二版中新增加的配置
+    task_schedule_key = "6y:apk:subpackage:task:schedule:task"  //打包过程中，打包任务的记录
+    upload_file_schedule_key = "6y:apk:subpackage:task:schedule:uploadfile" //分包完成后，待上传的记录
+    
+    # 第二版中更新打包状态 从 status_code-->packageInfo：
+    # 基本的打包状态消息
+    packageInfo = {
+
+        #101 打包未进行
+        'NO_READY' : {'errorCode': 101, 'message': "打包未开始"},
+
+        # 201正常
+        'COMPLETE' : {'errorCode': 201, 'message': "打包已完成"},
+
+        #4XX 基本错误类型
+        'ARG_MISS' : {'errorCode': 401, 'message':  "参数不完整，请检查"},
+        'NO_APK': {'errorCode': 402, 'message': "游戏母包不存在"},
+        'HAVEN_SUB': {'errorCode': 403, 'message': "游戏已分包，请勿重复操作"},
+        'WRONG_APK': {'errorCode': 404, 'message': "apk文件不能正常读取"},
+        'COPY_APK_ERROR': {'errorCode': 405, 'message': "无法创建文件,打包失败,请联系管理员"},
+        'PERM_ERROR': {'errorCode': 406, 'message': "无法读取游戏母包, 请设置好访问权限"},
+
+        # 5XX 特殊异常
+        'UNKNOWN_ERROR': {'errorCode': 501, 'message': "UNKNOWN_ERROR"},
+
+    }
+        
+        
+    # 错误日志发送的平台 （使用者不需要关心）
+    UDP_HOST = "218.85.13.145"
+    UDP_PORT = 1414
+
+    
+    log_post_time = # 打包任务出错后将重试log_post_time时间后，发送日志
+
+    
+    sdk_game_path # apk包的根路径
+    
+    
+    subpackage_sdk_path # 子包路径 当设置为None时，会在母包同目录下生成子包
+
+    
+    tempfile_dir # 分包时生成的临时文件路径，如果想在当前文件下生成临时文件，请设置为None
+    
+    # 生成随机长度的字符串时，字符只能在下列字符串中
+    random_chr = 'abcdefghjkmnpqrstuvwxyz23456789QWERTYUIPASDFGHJKLMNBVCXZ'
+
+    debug # 当此值为True时，开启调试模式，包括：分包上传完成不通知直接删除，
+
+
+
+# 将上传的有关配置整合到settings.py文件中(第二版修改)，主要配置如：
+    storageList 
+    storage_config
+    
+
+#将日志的配置文件整合到setting.py文件中
+    logging_directory_path = "log"  //定义日志的存储位置
+    日志包含三个文件：
+        all.log //程序运行中的所有记录
+        scripts.log  //任务的成功 与 出错信息
+        error.log  // 程序运行中的异常信息
+
