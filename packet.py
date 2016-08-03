@@ -3,7 +3,7 @@
 import os
 import json
 import time
-import subprocess 
+import subprocess
 from shutil import copyfile
 import zipfile
 import tempfile
@@ -57,7 +57,7 @@ def make_sub_package_file(filename, channel_id, version_name):
 
 
 def zip_add_file(channel_file, target_file, date=None):
-    # 获得临时文件目录 
+    # 获得临时文件目录
     tempfile_dir = settings.tempfile_dir
     if not tempfile_dir:
         tempfile_dir = os.getcwd()
@@ -91,7 +91,7 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
     channel_version_file = os.path.join(meta_info_dir, 'mg_channel_version_%s' % channel_version)
 
     startTime = time.time()
-    if not os.path.isfile(channel_file)
+    if not os.path.isfile(channel_file):
         logger.error("子包%s路径错误。。。。。" % (channel_file))
     # 添加文件到压缩包
     data = {'author': 'admin'}
