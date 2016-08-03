@@ -72,6 +72,8 @@ class Upload:
         logger.debug(cloud_filename)
         upload_file = self.get_driver_hand_way(conf)
         try:
+            if not os.path.isfile(filename)
+                logger.error("子包%s路径不存在。。。。。" % (filename))
             upload_file(cloud_filename, filename)
             self.upload_subpackage_dict.get(filename)[0] -= 1
         except Exception, e:

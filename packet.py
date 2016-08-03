@@ -91,7 +91,8 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
     channel_version_file = os.path.join(meta_info_dir, 'mg_channel_version_%s' % channel_version)
 
     startTime = time.time()
-
+    if not os.path.isfile(channel_file)
+        logger.error("子包%s路径错误。。。。。" % (channel_file))
     # 添加文件到压缩包
     data = {'author': 'admin'}
     zip_add_file(channel_file, channel_info_file, date=json.dumps(data))
