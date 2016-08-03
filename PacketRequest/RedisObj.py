@@ -17,7 +17,6 @@ class RedisObj(BaseObj):
         self.__redis_auth = settings.redis_auth
         self.redis_sleep_time = settings.no_task_sleep_time
 
-
     def get_redis_pool(self):
         redis_handler = redis.ConnectionPool(host=self.__redis_host,
                            port=self.__redis_port, db=self.__redis_db, password=self.__redis_auth)

@@ -4,3 +4,4 @@ gevent
 six
 filechunkio
 oss2
+setproctitle
