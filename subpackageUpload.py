@@ -39,6 +39,7 @@ class Upload:
                     # 全部上传成功，做一个通知 url = v[1]
                     logger.info("上传%s成功,删除子包" % (k))
                     os.remove(k)
+                    logger.debug("上传完成，准备通知%s" % (v[1]))
                     self.message.finish_message_notice(v[1])
                     continue
                 elif len(v[2]) == 0:
