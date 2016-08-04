@@ -105,6 +105,7 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
 
 
 def subpackage(filename=None, channel_id=None, extend=None):
+    logger.debug("准备分包%s文件" % filename)
     response = packetResponse.Response()
     # 确认参数完整性
     if not filename or not channel_id:
