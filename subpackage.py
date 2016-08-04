@@ -69,11 +69,11 @@ class SubPackage:
         self.task_resume_subpackage()
 
     def gevent_join(self):
-        gevent_task = [] 
+        gevent_task = []
         for each in range(self.packet_count):
-            gevent_task.append(gevent.spawn(self.packet)) 
+            gevent_task.append(gevent.spawn(self.packet))
         for each in range(self.retry_packet_count):
-            gevent_task.append(gevent.spawn(self.retry_packet)) 
+            gevent_task.append(gevent.spawn(self.retry_packet))
         for each in range(self.message_count):
             gevent_task.append(gevent.spawn(self.message.message_queue()))
         for each in range(self.retry_upload_count):
@@ -94,7 +94,9 @@ class SubPackage:
         # 任务恢复:  从进度task key里删除 data_loads
         delete_task = task.get_task_hand_way("delete_task")
         delete_task(settings.task_schedule_key, data_loads)
-        if message == "COMPLETE" or message == "HAVEN_SUB":
+        packet_errorcode = message.get_error_code()
+        # if message == "COMPLETE" or message == "HAVEN_SUB":
+        if packet_errorcode[0]==1:
             filename = response.get_filename()
             response.notice_url = data_loads.get("finish_notice_url")
             logger.debug(" 准备上传%s。。。。。。" % filename)
@@ -107,6 +109,9 @@ class SubPackage:
             push_task = task.get_task_hand_way("push_task")
             push_task(settings.upload_file_schedule_key, res)
             self.upload.get_upload_info(res)
+        elif packet_errorcode[0]==3:
+            # TODO 写到单独的文件中
+            pass
         else:
             # 错误的扔进redis, 并检测是否有消息超时时间，如果没有则添加此时间为当前时间的后log_post_time 秒
             error_time = self.get_packet_error_time(data_loads)
@@ -123,8 +128,8 @@ class SubPackage:
         else:
             data_loads = get_task(settings.task_store_retry_key)
         #   任务恢复: 把data_loads信息扔到 进度task key里
-        push_task = task.get_task_hand_way("push_task")
-        push_task(settings.task_schedule_key, data_loads)
+        add_set = task.get_task_hand_way("add_set")
+        add_set(settings.task_schedule_key, data_loads)
         return data_loads
 
     def package_task(self, data_loads):
@@ -142,7 +147,7 @@ class SubPackage:
     def packet(self):
         while True:
             if not self.is_run:
-                # sent_log_info(alarm_info_format("warning", "been kill")) 
+                # sent_log_info(alarm_info_format("warning", "been kill"))
                 break
             logger.debug("开始解任务。。。。。")
             # 获取消息的redis ,并解码成python格式
@@ -171,3 +176,4 @@ if __name__ == "__main__":
         p.task_resume()
         logger.debug("任务现场恢复完成，开始接受打包任务。。。。。")
         p.gevent_join()
+        print(123456)

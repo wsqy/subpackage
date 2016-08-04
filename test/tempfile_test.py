@@ -1,5 +1,5 @@
 # encoding:utf-8
-import settingqy
+import settings
 
 
 class Response:

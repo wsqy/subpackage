@@ -51,3 +51,13 @@ class RedisObj(BaseObj):
     def get_task_count(self, key):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         return redis_con.llen(key)
+
+    def add_set(self, key, data):
+        redis_con = redis.Redis(connection_pool=self.get_redis_pool())
+        data = json.dumps(data)
+        return redis_con.sadd(key, data)
+
+    def rem_set(self, key, data):
+        redis_con = redis.Redis(connection_pool=self.get_redis_pool())
+        data = json.dumps(data)
+        return redis_con.srem(key, data)

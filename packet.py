@@ -8,6 +8,7 @@ from shutil import copyfile
 import zipfile
 import tempfile
 from AxmlParserPY import apk
+import task
 import settings
 import random
 import packetResponse
@@ -125,6 +126,11 @@ def subpackage(filename=None, channel_id=None, extend=None):
     try:
         version_name = get_apk_version(source_file)
         channel_file = make_sub_package_file(filename, channel_id, version_name)
+        push_task = task.get_task_hand_way("push_task")
+        status = push_task(settings.task_execute_key, channel_file)
+        if status == 0:
+            response.set_status_key('execute')
+            return response
         if "enforcement" not in extend:
             enforcement = True
         else:
