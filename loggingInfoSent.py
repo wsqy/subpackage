@@ -19,5 +19,5 @@ def sent_log_info(data):
         logger.debug("发送日志")
         s.sendto(data, UDPTarget)
         s.close()
-    except Exception,e:
-        logger.error(e)
+    except Exception, e:
+        logger.error("日志发送失败:%s" % e)

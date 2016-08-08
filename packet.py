@@ -93,7 +93,7 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
 
     startTime = time.time()
     if not os.path.isfile(channel_file):
-        logger.error("子包%s路径错误。。。。。" % (channel_file))
+        logger.error("子包%s路径错误....." % (channel_file))
     # 添加文件到压缩包
     data = {'author': 'admin'}
     zip_add_file(channel_file, channel_info_file, date=json.dumps(data))
@@ -106,8 +106,8 @@ def unpack(channel_file=None, channel_id=None, extend={}, version_name=None):
 
 
 def subpackage(filename=None, channel_id=None, extend=None):
-    logger.debug("准备分包%s文件" % filename)
     response = packetResponse.Response()
+    response.set_filename(filename)
     # 确认参数完整性
     if not filename or not channel_id:
         response.set_status_key('ARG_MISS')
@@ -126,8 +126,8 @@ def subpackage(filename=None, channel_id=None, extend=None):
     try:
         version_name = get_apk_version(source_file)
         channel_file = make_sub_package_file(filename, channel_id, version_name)
-        push_task = task.get_task_hand_way("push_task")
-        status = push_task(settings.task_execute_key, channel_file)
+        add_set = task.get_task_hand_way("add_set")
+        status = add_set(settings.task_execute_key, channel_file)
         if status == 0:
             response.set_status_key('execute')
             return response
@@ -135,8 +135,9 @@ def subpackage(filename=None, channel_id=None, extend=None):
             enforcement = True
         else:
             enforcement = extend.get("enforcement")
+        logger.debug("母包%s是否需要强制分包:%s" % (filename, enforcement))
         if os.path.exists(channel_file):
-            if enforcement:
+            if not enforcement:
                 response.set_status_key('HAVEN_SUB')
                 response.set_filename(channel_file)
                 response.set_packet_dir_path(filename)

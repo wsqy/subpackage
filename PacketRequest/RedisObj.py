@@ -31,7 +31,7 @@ class RedisObj(BaseObj):
         while not task_info:
             time.sleep(self.redis_sleep_time)
             task_info = redis_con.rpop(key)
-        logger.debug("取到一个数据")
+        logger.debug("取到一个数据......")
         task_info = json.loads(task_info)
         return task_info
 
@@ -55,9 +55,15 @@ class RedisObj(BaseObj):
     def add_set(self, key, data):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         data = json.dumps(data)
+        logger.debug("添加唯一性任务记录:%s" % data)
         return redis_con.sadd(key, data)
 
     def rem_set(self, key, data):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         data = json.dumps(data)
+        logger.debug("删除唯一性任务记录:%s" % data)
         return redis_con.srem(key, data)
+
+    def del_key(self, key):
+        redis_con = redis.Redis(connection_pool=self.get_redis_pool())
+        redis_con.delete(key)

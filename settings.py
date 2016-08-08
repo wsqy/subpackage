@@ -32,7 +32,7 @@ task_execute_key = "6y:apk:subpackage:task:execute:set"
 # 基本的打包状态消息
 packageInfo = {
 
-    #101 打包未进行
+    # 101 打包未进行
     'NO_READY': {'errorCode': 101, 'message': "打包未开始"},
 
     # 201正常
@@ -41,13 +41,13 @@ packageInfo = {
     # 30x 任务失败且不需要继续扔回redis
     'execute': {'errorCode': 301, 'message': "任务已在分包中。。。。。"},
     'NO_APK': {'errorCode': 302, 'message': "游戏母包不存在"},
+    'ARG_MISS': {'errorCode': 303, 'message':  "参数不完整，请检查"},
+    'WRONG_APK': {'errorCode': 304, 'message': "apk文件不能正常读取"},
 
     # 4XX 基本错误类型
-    'ARG_MISS': {'errorCode': 401, 'message':  "参数不完整，请检查"},
-    'HAVEN_SUB': {'errorCode': 403, 'message': "游戏已分包，请勿重复操作"},
-    'WRONG_APK': {'errorCode': 404, 'message': "apk文件不能正常读取"},
-    'COPY_APK_ERROR': {'errorCode': 405, 'message': "无法创建文件,打包失败,请联系管理员"},
-    'PERM_ERROR': {'errorCode': 406, 'message': "无法读取游戏母包, 请设置好访问权限"},
+    'HAVEN_SUB': {'errorCode': 401, 'message': "游戏已分包，请勿重复操作"},
+    'COPY_APK_ERROR': {'errorCode': 402, 'message': "无法创建文件,打包失败,请联系管理员"},
+    'PERM_ERROR': {'errorCode': 403, 'message': "无法读取游戏母包, 请设置好访问权限"},
 
     # 5XX 特殊异常
     'UNKNOWN_ERROR': {'errorCode': 501, 'message': "UNKNOWN_ERROR"},
