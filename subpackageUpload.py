@@ -10,28 +10,32 @@ import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
 
+upload_subpackage_dict = {}
+
 
 class Upload:
     def __init__(self):
-        self.upload_subpackage_dict = {}
         self.no_task_sleep_time = settings.no_task_sleep_time
-        self.message = Message()
+
+    def initialize_message(self):
+        message = Message()
+        return message
 
     def get_upload_info(self, response):
         filename = response["filename"]
-        self.upload_subpackage_dict[filename] = [len(settings.storageList), response, []]
+        upload_subpackage_dict[filename] = [len(settings.storageList), response, []]
         for st in settings.storageList:
             conf = settings.storage_config.get(st)
             conf["filename"] = filename
             conf["packet_dir_path"] = response["packet_dir_path"]
-            self.upload_subpackage_dict.get(filename)[2].append(conf)
+            upload_subpackage_dict.get(filename)[2].append(conf)
 
     def get_upload_task(self):
         while True:
-            if len(self.upload_subpackage_dict) == 0:
+            if len(upload_subpackage_dict) == 0:
                 gevent.sleep(self.no_task_sleep_time)
             else:
-                k, v = self.upload_subpackage_dict.popitem()
+                k, v = upload_subpackage_dict.popitem()
                 if v[0] <= 0:
                     # 全部上传成功，做一个通知 url = v[1]
                     # 从任务记录中删除待上传记录
@@ -43,16 +47,17 @@ class Upload:
                     logger.info("上传子包%s成功,删除子包" % (k))
                     os.remove(k)
                     logger.debug("上传完成，准备通知%s" % (v[1]["notice_url"]))
-                    self.message.finish_message_notice(v[1]["notice_url"])
+                    message = self.initialize_message()
+                    message.finish_message_notice(v[1]["notice_url"])
                     continue
                 elif len(v[2]) == 0:
-                    self.upload_subpackage_dict[k] = v
+                    upload_subpackage_dict[k] = v
                     gevent.sleep(self.no_task_sleep_time)
                 else:
                     conf = v[2].pop()
                     # self.upload_cloud(conf)
                     # v[0] -= 1
-                    self.upload_subpackage_dict[k] = v
+                    upload_subpackage_dict[k] = v
                     self.upload_cloud(conf)
 
     def get_cloud_file_path(self, conf):
@@ -79,9 +84,9 @@ class Upload:
             if not os.path.isfile(filename):
                 logger.error("子包%s路径不存在....." % filename)
             upload_file(cloud_filename, filename)
-            self.upload_subpackage_dict.get(filename)[0] -= 1
+            upload_subpackage_dict.get(filename)[0] -= 1
         except Exception, e:
             logger.error(e)
             # 将文件名封装进这个字典
-            # self.upload_subpackage_dict.get(filename)[0] += 1
-            self.upload_subpackage_dict.get(filename)[2].append(conf)
+            # upload_subpackage_dict.get(filename)[0] += 1
+            upload_subpackage_dict.get(filename)[2].append(conf)

@@ -5,15 +5,16 @@ import signal
 import time
 import sys
 import task
-import gevent
 from gevent import monkey
 monkey.patch_all()
+import gevent
 from setproctitle import setproctitle, getproctitle
 import settings
 import packet
 from loggingInfoSent import alarm_info_format, sent_log_info
 from messageNotice import Message
 from subpackageUpload import Upload
+from taskRestore import Restore
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
@@ -32,49 +33,18 @@ class SubPackage:
         self.packet_count = settings.packet_count
         self.message_count = settings.message_count
         self.retry_upload_count = settings.retry_upload_count
-        self.message = Message()
-        self.upload = Upload()
         self.is_run = True
 
     def setQuit(self, pid, signal_num):
         self.is_run = False
 
-    def delete_task_set(self):
-        del_key = task.get_task_hand_way("del_key")
-        del_key(settings.task_execute_key)
-        logger.debug("唯一性任务的集合删除完成...")
+    def initialize_upload(self):
+        upload = Upload()
+        return upload
 
-    def task_resume_upload(self, key=settings.upload_file_schedule_key):
-        get_task_count = task.get_task_hand_way("get_task_count")
-        upload_task_count = get_task_count(key)
-        if upload_task_count:
-            get_task = task.get_task_hand_way("get_task")
-            for count in range(upload_task_count):
-                up_file = get_task(key)
-                logger.debug(up_file)
-                self.upload.get_upload_info(up_file)
-        else:
-            logger.debug("没有待上传的子包.......")
-
-    def task_resume_subpackage(self, key_source=settings.task_schedule_key, key_target=settings.task_store_key):
-        get_task_count = task.get_task_hand_way("get_task_count")
-        upload_task_count = get_task_count(key_source)
-        if upload_task_count:
-            get_task = task.get_task_hand_way("get_task")
-            push_task = task.get_task_hand_way("push_task")
-            for count in range(upload_task_count):
-                tasks = get_task(key_source)
-                push_task(key_target, tasks, reverse=True)
-        else:
-            logger.debug("没有待恢复的任务.......")
-
-    def task_resume(self):
-        logger.debug("准备删除唯一性任务的集合...")
-        self.delete_task_set()
-        logger.debug("准备恢复子包上传...")
-        self.task_resume_upload()
-        logger.debug("准备恢复打包任务...")
-        self.task_resume_subpackage()
+    def initialize_message(self):
+        message = Message()
+        return message
 
     def gevent_join(self):
         gevent_task = []
@@ -83,9 +53,11 @@ class SubPackage:
         for each in range(self.retry_packet_count):
             gevent_task.append(gevent.spawn(self.retry_packet))
         for each in range(self.message_count):
-            gevent_task.append(gevent.spawn(self.message.message_queue()))
+            message = self.initialize_message()
+            gevent_task.append(gevent.spawn(message.message_queue()))
         for each in range(self.retry_upload_count):
-            gevent_task.append(gevent.spawn(self.upload.get_upload_task))
+            upload = self.initialize_upload()
+            gevent_task.append(gevent.spawn(upload.get_upload_task))
         gevent.joinall(gevent_task)
 
     def get_packet_error_time(self, data):
@@ -115,7 +87,8 @@ class SubPackage:
             #  任务恢复: 把response信息扔到 进度uploadfile key里,这里把class转成了dict方便json转换
             push_task = task.get_task_hand_way("push_task")
             push_task(settings.upload_file_schedule_key, res)
-            self.upload.get_upload_info(res)
+            upload = self.initialize_upload()
+            upload.get_upload_info(res)
         elif packet_errorcode // 100 == 3:
             # TODO 写到单独的文件中
             sent_log_info("%s\t%s" % (response.get_filename(), response.get_status_key()))
@@ -177,9 +150,10 @@ class SubPackage:
 
 if __name__ == "__main__":
     # with daemon.DaemonContext():
-        p = SubPackage()
+        r = Restore()
         logger.debug("准备恢复任务现场.....")
-        p.task_resume()
+        r.task_resume()
         logger.debug("任务现场恢复完成，开始接受打包任务.....")
+        p = SubPackage()
         signal.signal(signal.SIGHUP, p.setQuit)
         p.gevent_join()
