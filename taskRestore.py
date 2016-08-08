@@ -1,7 +1,6 @@
 # coding:utf-8
 import settings
 import task
-import gevent
 from subpackageUpload import Upload
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
@@ -11,17 +10,7 @@ logger = logging.getLogger('mylogger')
 class Restore:
     def __init__(self):
         self.retry_upload_count = settings.retry_upload_count
-
-    def initialize_upload(self):
-        upload = Upload()
-        return upload
-
-    def gevent_join(self):
-        gevent_task = []
-        for each in range(self.retry_upload_count):
-            upload = self.initialize_upload()
-            gevent_task.append(gevent.spawn(upload.get_upload_task))
-        gevent.joinall(gevent_task)
+        self.upload = Upload()
 
     def delete_task_set(self):
         del_key = task.get_task_hand_way("del_key")
@@ -33,12 +22,10 @@ class Restore:
         upload_task_count = get_task_count(key)
         if upload_task_count:
             get_task = task.get_task_hand_way("get_task")
-            self.gevent_join()
             for count in range(upload_task_count):
                 up_file = get_task(key)
                 logger.debug(up_file)
-                upload = self.initialize_upload()
-                upload.get_upload_info(up_file)
+                self.upload.get_upload_info(up_file)
         else:
             logger.debug("没有待上传的子包.......")
 
