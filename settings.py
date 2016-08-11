@@ -28,6 +28,7 @@ task_schedule_key = "6y:apk:subpackage:task:schedule:task"
 upload_file_schedule_key = "6y:apk:subpackage:task:schedule:uploadfile"
 
 task_execute_key = "6y:apk:subpackage:task:execute:set"
+task_subpackage_set = "6y:apk:subpackage:subpackages:set"
 
 # 基本的打包状态消息
 packageInfo = {
@@ -36,7 +37,7 @@ packageInfo = {
     'NO_READY': {'errorCode': 101, 'message': "打包未开始"},
 
     # 201正常
-    'COMPLETE' : {'errorCode': 201, 'message': "打包已完成"},
+    'COMPLETE': {'errorCode': 201, 'message': "打包已完成"},
 
     # 30x 任务失败且不需要继续扔回redis
     'execute': {'errorCode': 301, 'message': "任务已在分包中。。。。。"},

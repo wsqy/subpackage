@@ -35,29 +35,36 @@ class Upload:
             if len(upload_subpackage_dict) == 0:
                 gevent.sleep(self.no_task_sleep_time)
             else:
-                k, v = upload_subpackage_dict.popitem()
-                if v[0] <= 0:
-                    # 全部上传成功，做一个通知 url = v[1]
+                filename, filename_config = upload_subpackage_dict.popitem()
+                if filename_config[0] <= 0:
+                    # 全部上传成功，做一个通知 url = filename_config[1]
                     # 从任务记录中删除待上传记录
                     delete_task = task.get_task_hand_way("delete_task")
-                    delete_task(settings.upload_file_schedule_key, v[1])
+                    delete_task(settings.upload_file_schedule_key, filename_config[1])
                     # 上传成功 从唯一性任务集合中删除
                     rem_set = task.get_task_hand_way("rem_set")
-                    rem_set(settings.task_execute_key, k)
-                    logger.info("上传子包%s成功,删除子包" % (k))
-                    os.remove(k)
-                    logger.debug("上传完成，准备通知%s" % (v[1]["notice_url"]))
+                    rem_set(settings.task_execute_key, filename)
+
+                    base_dir = os.path.split(os.path.realpath(__file__))[0]
+                    file_path = os.path.join(base_dir, filename)
+                    logger.debug("子包全路径为:%s" % file_path)
+                    add_set = task.get_task_hand_way("add_set")
+                    add_set(settings.task_subpackage_set, file_path)
+                    logger.debug("塞子包%s完成" % file_path)
+
                     message = self.initialize_message()
-                    message.finish_message_notice(v[1]["notice_url"])
-                    continue
-                elif len(v[2]) == 0:
-                    upload_subpackage_dict[k] = v
+                    logger.debug("上传完成，准备通知%s" % (filename_config[1]["notice_url"]))
+                    message.finish_message_notice(filename_config[1]["notice_url"])
+
+
+                elif len(filename_config[2]) == 0:
+                    upload_subpackage_dict[filename] = filename_config
                     gevent.sleep(self.no_task_sleep_time)
                 else:
-                    conf = v[2].pop()
+                    conf = filename_config[2].pop()
                     # self.upload_cloud(conf)
                     # v[0] -= 1
-                    upload_subpackage_dict[k] = v
+                    upload_subpackage_dict[filename] = filename_config
                     self.upload_cloud(conf)
 
     def get_cloud_file_path(self, conf):
