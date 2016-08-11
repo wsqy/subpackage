@@ -67,3 +67,9 @@ class RedisObj(BaseObj):
     def del_key(self, key):
         redis_con = redis.Redis(connection_pool=self.get_redis_pool())
         redis_con.delete(key)
+
+    def ret_member(self, key):
+        redis_con = redis.Redis(connection_pool=self.get_redis_pool())
+        task_info = redis_con.srandmember(key)
+        task_info = json.loads(task_info)
+        return task_info
