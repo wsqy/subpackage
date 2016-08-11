@@ -8,6 +8,7 @@ import task
 from gevent import monkey
 monkey.patch_all()
 import gevent
+from copy import deepcopy
 from setproctitle import setproctitle, getproctitle
 import settings
 import packet
@@ -38,10 +39,6 @@ class SubPackage:
     def setQuit(self, pid, signal_num):
         self.is_run = False
 
-    def initialize_upload(self):
-        upload = Upload()
-        return upload
-
     def initialize_message(self):
         message = Message()
         return message
@@ -56,7 +53,7 @@ class SubPackage:
             message = self.initialize_message()
             gevent_task.append(gevent.spawn(message.message_queue()))
         for each in range(self.retry_upload_count):
-            upload = self.initialize_upload()
+            upload = deepcopy(Upload())
             gevent_task.append(gevent.spawn(upload.get_upload_task))
         gevent.joinall(gevent_task)
 
@@ -87,7 +84,7 @@ class SubPackage:
             #  任务恢复: 把response信息扔到 进度uploadfile key里,这里把class转成了dict方便json转换
             push_task = task.get_task_hand_way("push_task")
             push_task(settings.upload_file_schedule_key, res)
-            upload = self.initialize_upload()
+            upload = deepcopy(Upload())
             upload.get_upload_info(res)
         elif packet_errorcode // 100 == 3:
             # TODO 写到单独的文件中

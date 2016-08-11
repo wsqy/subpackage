@@ -56,7 +56,6 @@ class Upload:
                     logger.debug("上传完成，准备通知%s" % (filename_config[1]["notice_url"]))
                     message.finish_message_notice(filename_config[1]["notice_url"])
 
-
                 elif len(filename_config[2]) == 0:
                     upload_subpackage_dict[filename] = filename_config
                     gevent.sleep(self.no_task_sleep_time)

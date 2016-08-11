@@ -1,6 +1,7 @@
 # coding:utf-8
 import redis
 import json
+import os
 data = {
     'filename': '6',
     'channel_id': 1,

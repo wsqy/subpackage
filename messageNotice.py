@@ -23,7 +23,6 @@ class Message:
             if "success" in response:
                 # 打个成功的日志
                 logger.debug("消息发送成功")
-                logger.debug("上传成功删除文件")
             elif "miss" in response:
                 sent_log_info(alarm_info_format("notice", "missing"))
                 logger.debug("miss")

@@ -1,6 +1,7 @@
 # coding:utf-8
 import settings
 import task
+from copy import deepcopy
 from subpackageUpload import Upload
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
@@ -10,7 +11,6 @@ logger = logging.getLogger('mylogger')
 class Restore:
     def __init__(self):
         self.retry_upload_count = settings.retry_upload_count
-        self.upload = Upload()
 
     def delete_task_set(self):
         del_key = task.get_task_hand_way("del_key")
@@ -25,7 +25,9 @@ class Restore:
             for count in range(upload_task_count):
                 up_file = get_task(key)
                 logger.debug(up_file)
-                self.upload.get_upload_info(up_file)
+                upload = deepcopy(Upload())
+                logger.debug(id(upload))
+                upload.get_upload_info(up_file)
         else:
             logger.debug("没有待上传的子包.......")
 
