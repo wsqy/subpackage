@@ -34,6 +34,8 @@ def remove_sub():
         time.sleep(settings.sleep_time)
 
 if __name__ == "__main__":
-    remove_sub()
+    while True:
+        remove_sub()
+        time.sleep(settings.sleep_time)
 
 
