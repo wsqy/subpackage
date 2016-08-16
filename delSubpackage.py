@@ -1,53 +1,30 @@
 #!/usr/bin/env python2.7
 # coding:utf-8
-import redis
-import json
 import os
 import getMyIP
 import time
-task_subpackage_set = "6y:apk:subpackage:subpackages:set"
-sleep_time = 10
-
-
-class RedisObj:
-    def __init__(self):
-        self.__redis_host = '121.199.34.235'
-        self.__redis_port = 6379
-        self.__redis_db = 0
-        self.__redis_auth = "uid"
-
-    def get_redis_pool(self):
-        redis_handler = redis.ConnectionPool(host=self.__redis_host,
-                           port=self.__redis_port, db=self.__redis_db, password=self.__redis_auth)
-        return redis_handler
-
-    def rem_set(self, key, data):
-        redis_con = redis.Redis(connection_pool=self.get_redis_pool())
-        data = json.dumps(data)
-        return redis_con.srem(key, data)
-
-    def random_member(self, key):
-        redis_con = redis.Redis(connection_pool=self.get_redis_pool())
-        task_info = redis_con.srandmember(key)
-        task_info = json.loads(task_info)
-        return task_info
+import settings
+import task
 
 
 def remove_sub():
-    global task_subpackage_set
-    task_subpackage_set = task_subpackage_set + ":" + getMyIP.get_intranet_ip()
+    task_subpackage_set = settings.task_subpackage_set + ":" + getMyIP.get_intranet_ip()
+    rad_num = task.get_task_hand_way("random_member")
+    rem_set = task.get_task_hand_way("rem_set")
     while True:
         try:
-            rad_num = RedisObj().random_member(task_subpackage_set)
+            rad_num = rad_num(task_subpackage_set)
             if not rad_num:
-                print("no data,sleep %s s....." % sleep_time)
-                time.sleep(sleep_time)
+                print("no data,sleep %s s....." % settings.sleep_time)
+                time.sleep(settings.sleep_time)
+                continue
             print("get apk : %s" % rad_num)
             os.remove(rad_num)
-            rem_set = RedisObj().rem_set(task_subpackage_set, rad_num)
+            rem_set = rem_set(task_subpackage_set, rad_num)
         except TypeError as e:
-            print("sleep %s s....." % sleep_time)
-            time.sleep(sleep_time)
+            print("sleep %s s....." % settings.sleep_time)
+            time.sleep(settings.sleep_time)
+            continue
 
 if __name__ == "__main__":
     remove_sub()

@@ -23,6 +23,7 @@ redis_auth = "nhuWq6vgsEypdZF"
 task_store_key = "6y:apk:subpackage:task"
 task_store_retry_key = "6y:apk:subpackage:retrytask"
 no_task_sleep_time = 3
+sleep_time = 10
 
 task_schedule_key = "6y:apk:subpackage:task:schedule:task"
 upload_file_schedule_key = "6y:apk:subpackage:task:schedule:uploadfile"

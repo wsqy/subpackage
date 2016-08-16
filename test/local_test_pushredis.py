@@ -3,13 +3,13 @@ import redis
 import json
 import os
 data = {
-    'filename': '3',
+    'filename': '2',
     'channel_id': 1,
     'extend': {
         'channel_version': '0.7',
         'enforcement': False,
     },
-    'finish_notice_url': 'http://192.168.5.20/test3.php',
+    'finish_notice_url': 'http://192.168.5.20/test2.php',
 }
 # , password="uid"
 redis_pool = redis.ConnectionPool(host='121.199.34.235', port=6379, db=0, password="uid")
