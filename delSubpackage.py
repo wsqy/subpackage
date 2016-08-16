@@ -32,9 +32,22 @@ def remove_sub():
             f.write("%s\t, sleep %s s....." % (e, settings.sleep_time))
         time.sleep(settings.sleep_time)
 
-if __name__ == "__main__":
     while True:
-        remove_sub()
-        time.sleep(settings.sleep_time)
+        try:
+            rad_num = RedisObj().random_member(task_subpackage_set)
+            if not rad_num:
+                print("no data,sleep %s s....." % sleep_time)
+                time.sleep(sleep_time)
+                continue
+            print("get apk : %s" % rad_num)
+            os.remove(rad_num)
+            rem_set = RedisObj().rem_set(task_subpackage_set, rad_num)
+        except Exception as e:
+            print("sleep %s s....." % sleep_time)
+            time.sleep(sleep_time)
+            continue
+
+if __name__ == "__main__":
+    remove_sub()
 
 
