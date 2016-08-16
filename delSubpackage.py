@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 # coding:utf-8
+
 import os
 import getMyIP
 import time
@@ -27,25 +28,10 @@ def remove_sub():
                 f.write("get apk : %s\n" % rad_num)
             os.remove(rad_num)
             rem_set(task_subpackage_set, rad_num)
-    except TypeError as e:
+    except Exception as e:
         with open(log_path, "a+") as f:
             f.write("%s\t, sleep %s s....." % (e, settings.sleep_time))
         time.sleep(settings.sleep_time)
-
-    while True:
-        try:
-            rad_num = RedisObj().random_member(task_subpackage_set)
-            if not rad_num:
-                print("no data,sleep %s s....." % sleep_time)
-                time.sleep(sleep_time)
-                continue
-            print("get apk : %s" % rad_num)
-            os.remove(rad_num)
-            rem_set = RedisObj().rem_set(task_subpackage_set, rad_num)
-        except Exception as e:
-            print("sleep %s s....." % sleep_time)
-            time.sleep(sleep_time)
-            continue
 
 if __name__ == "__main__":
     remove_sub()
