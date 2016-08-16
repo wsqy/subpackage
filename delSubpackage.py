@@ -17,6 +17,7 @@ def del_system(info):
 
 
 def remove_sub():
+    status = 1
     log_path = "log/del.log"
     task_subpackage_set = settings.task_subpackage_set + ":" + getMyIP.get_intranet_ip()
     rad_num = task.get_task_hand_way("random_member")
@@ -24,18 +25,22 @@ def remove_sub():
     try:
         rad_num = rad_num(task_subpackage_set)
         if rad_num:
-            with open(log_path, "a+") as f:
-                f.write("get apk : %s\n" % rad_num)
             os.remove(rad_num)
+            status = 0
             rem_set(task_subpackage_set, rad_num)
+            with open(log_path, "a+") as f:
+                f.write("remove apk : %s\n" % rad_num)
     except Exception as e:
         with open(log_path, "a+") as f:
-            f.write("%s\t, sleep %s s....." % (e, settings.sleep_time))
+            f.write("%s\t, sleep %s s\n" % (e, settings.sleep_time))
         time.sleep(settings.sleep_time)
+    finally:
+        return status
 
 if __name__ == "__main__":
     while True:
-        remove_sub()
-        time.sleep(settings.sleep_time)
+        status = remove_sub()
+        if status:
+            time.sleep(settings.sleep_time)
 
 
