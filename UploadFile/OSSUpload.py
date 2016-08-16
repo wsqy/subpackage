@@ -59,8 +59,7 @@ class OSSUpload(BaseUpload):
         startTime = time.time()
         while len(chunk_information) > 0:
             chunk_info = chunk_information.pop(0)
-            result = chunk_info["bucket"].upload_part(chunk_info["cloud_file"], chunk_info["upload_id"],
-                                                      chunk_info["part_number"], chunk_info["file_size_adapter"])
+            result = chunk_info["bucket"].upload_part(chunk_info["cloud_file"], chunk_info["upload_id"], chunk_info["part_number"], chunk_info["file_size_adapter"])
             self.__parts.append(oss2.models.PartInfo(chunk_info["part_number"], result.etag))
             endTime = time.time()
             spendTime = endTime - startTime
