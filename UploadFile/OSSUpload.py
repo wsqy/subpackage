@@ -55,16 +55,17 @@ class OSSUpload(BaseUpload):
         spendTime = endTime - startTime
         logger.info("Upload file %s spent %f second." % (file_to_upload, spendTime))
 
-    def complicate_upload(self,chunk_information):
+    def complicate_upload(self, chunk_information):
         startTime = time.time()
         while len(chunk_information) > 0:
             chunk_info = chunk_information.pop(0)
             result = chunk_info["bucket"].upload_part(chunk_info["cloud_file"], chunk_info["upload_id"],
-                                            chunk_info["part_number"], chunk_info["file_size_adapter"])
+                                                      chunk_info["part_number"], chunk_info["file_size_adapter"])
             self.__parts.append(oss2.models.PartInfo(chunk_info["part_number"], result.etag))
             endTime = time.time()
             spendTime = endTime - startTime
-            logger.debug("Upload file part %d spent %f second." % (chunk_info["part_number"], spendTime))
+            logger.debug("Upload file part %d of %s spent %f second." %
+                         (chunk_info["part_number"], chunk_info["cloud_file"], spendTime))
 
 
     def upload_chunk_file(self, cloud_file, file_to_upload):

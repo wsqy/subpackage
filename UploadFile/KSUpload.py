@@ -48,7 +48,7 @@ class KSUpload(BaseUpload):
             filePartInfo['fp'].close()
         endTime = time.time()
         spendTime = endTime - startTime
-        logger.debug("Upload file part %d spent %f second." % (filePartInfo['partIdx'], spendTime))
+        logger.debug("Upload file part %d of %s spent %f second." % (filePartInfo['partIdx'], filePartInfo['cloud_file'], spendTime))
 
     def upload_chunk_file(self, cloud_file, file_to_upload):
         bucket = self.__connect_ks()
@@ -68,7 +68,8 @@ class KSUpload(BaseUpload):
             file_parts.append(dict(
                 hMultiUpload=h_multi_upload,
                 fp=fp,
-                partIdx=chunkIdx + 1
+                partIdx=chunkIdx + 1,
+                cloud_file=cloud_file,
             ))
 
         hPool = Pool(file_part_count)
