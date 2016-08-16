@@ -32,7 +32,8 @@ def remove_sub():
                 f.write("remove apk : %s\n" % rad_num)
     except Exception as e:
         with open(log_path, "a+") as f:
-            f.write("%s\t, sleep %s s\n" % (e, settings.sleep_time)) 
+            f.write("%s\t, sleep %s s\n" % (e, settings.sleep_time))
+        time.sleep(settings.sleep_time)
     finally:
         return status
 
