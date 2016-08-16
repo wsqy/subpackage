@@ -5,12 +5,15 @@ import os
 import gevent
 import settings
 import task
+import getMyIP
+from copy import deepcopy
 from messageNotice import Message
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger('mylogger')
 
-upload_subpackage_dict = {}
+upload_subpackages = []
+# upload_subpackages = Queue.Queue(maxsize=0)
 
 
 class Upload:
@@ -22,49 +25,22 @@ class Upload:
         return message
 
     def get_upload_info(self, response):
-        filename = response["filename"]
-        upload_subpackage_dict[filename] = [len(settings.storageList), response, []]
         for st in settings.storageList:
-            conf = settings.storage_config.get(st)
-            conf["filename"] = filename
+            # conf = settings.storage_config.get(st)
+            conf = deepcopy(settings.storage_config.get(st))
+            conf["filename"] = response["filename"]
             conf["packet_dir_path"] = response["packet_dir_path"]
-            upload_subpackage_dict.get(filename)[2].append(conf)
+            conf["notice_url"] = response["notice_url"]
+            upload_subpackages.append(conf)
 
     def get_upload_task(self):
         while True:
-            if len(upload_subpackage_dict) == 0:
+            if len(upload_subpackages) == 0:
                 gevent.sleep(self.no_task_sleep_time)
             else:
-                filename, filename_config = upload_subpackage_dict.popitem()
-                if filename_config[0] <= 0:
-                    # 全部上传成功，做一个通知 url = filename_config[1]
-                    # 从任务记录中删除待上传记录
-                    delete_task = task.get_task_hand_way("delete_task")
-                    delete_task(settings.upload_file_schedule_key, filename_config[1])
-                    # 上传成功 从唯一性任务集合中删除
-                    rem_set = task.get_task_hand_way("rem_set")
-                    rem_set(settings.task_execute_key, filename)
-
-                    base_dir = os.path.split(os.path.realpath(__file__))[0]
-                    file_path = os.path.join(base_dir, filename)
-                    logger.debug("子包全路径为:%s" % file_path)
-                    add_set = task.get_task_hand_way("add_set")
-                    add_set(settings.task_subpackage_set, file_path)
-                    logger.debug("塞子包%s完成" % file_path)
-
-                    message = self.initialize_message()
-                    logger.debug("上传完成，准备通知%s" % (filename_config[1]["notice_url"]))
-                    message.finish_message_notice(filename_config[1]["notice_url"])
-
-                elif len(filename_config[2]) == 0:
-                    upload_subpackage_dict[filename] = filename_config
-                    gevent.sleep(self.no_task_sleep_time)
-                else:
-                    conf = filename_config[2].pop()
-                    # self.upload_cloud(conf)
-                    # v[0] -= 1
-                    upload_subpackage_dict[filename] = filename_config
-                    self.upload_cloud(conf)
+                # logger.debug(upload_subpackages)
+                upload_subpackage = upload_subpackages.pop()
+                self.upload_cloud(upload_subpackage)
 
     def get_cloud_file_path(self, conf):
         filename = conf.get("filename")
@@ -81,20 +57,51 @@ class Upload:
         upload_file = getattr(h_driver, "upload_file")
         return upload_file
 
+    def upload_success_handle(self, conf):
+        filename = conf.get("filename")
+        notice_url = conf.get("notice_url")
+        packet_dir_path = conf.get("packet_dir_path")
+        response_info = {
+            "filename": filename,
+            "notice_url": notice_url,
+            "packet_dir_path": packet_dir_path,
+        }
+        # 从任务记录中删除待上传记录
+        delete_task = task.get_task_hand_way("delete_task")
+        upload_file_schedule_key = settings.upload_file_schedule_key + ":" + getMyIP.get_intranet_ip()
+        delete_task(upload_file_schedule_key, response_info)
+
+        # 上传成功 从唯一性任务集合中删除
+        rem_set = task.get_task_hand_way("rem_set")
+        rem_set(settings.task_execute_key, filename)
+
+        logger.info("上传子包%s成功,准备删除子包" % filename)
+        base_dir = os.path.split(os.path.realpath(__file__))[0]
+        file_path = os.path.join(base_dir, filename)
+        logger.debug("子包全路径为:%s" % file_path)
+        add_set = task.get_task_hand_way("add_set")
+        task_subpackage_set = settings.task_subpackage_set + ":" + getMyIP.get_intranet_ip()
+        add_set(task_subpackage_set, file_path)
+        logger.debug("塞子包%s完成" % file_path)
+
+        message = self.initialize_message()
+        message.finish_message_notice(notice_url)
+
     def upload_cloud(self, conf):
         filename = conf.get("filename")
         cloud_filename = self.get_cloud_file_path(conf)
-        logger.debug(cloud_filename)
+        # logger.debug(cloud_filename)
         upload_file = self.get_driver_hand_way(conf)
         try:
             has_subfile = os.path.isfile(filename)
             if has_subfile:
                 upload_file(cloud_filename, filename)
-                upload_subpackage_dict.get(filename)[0] -= 1
+                # 成功后的通知与删除
+                self.upload_success_handle(conf)
+                # upload_subpackages.get(filename)[0] -= 1
             else:
                 logger.error("子包%s路径不存在....." % filename)
         except Exception, e:
             logger.error(e)
-            # 将文件名封装进这个字典
-            # upload_subpackage_dict.get(filename)[0] += 1
-            upload_subpackage_dict.get(filename)[2].append(conf)
+            upload_subpackages.append(conf)
+            # upload_subpackages.get(filename)[2].append(conf)

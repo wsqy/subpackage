@@ -38,6 +38,7 @@ packageInfo = {
 
     # 201正常
     'COMPLETE': {'errorCode': 201, 'message': "打包已完成"},
+    'HAVEN_SUB': {'errorCode': 202, 'message': "游戏已分包，请勿重复操作"},
 
     # 30x 任务失败且不需要继续扔回redis
     'execute': {'errorCode': 301, 'message': "任务已在分包中。。。。。"},
@@ -46,9 +47,8 @@ packageInfo = {
     'WRONG_APK': {'errorCode': 304, 'message': "apk文件不能正常读取"},
 
     # 4XX 基本错误类型
-    'HAVEN_SUB': {'errorCode': 401, 'message': "游戏已分包，请勿重复操作"},
-    'COPY_APK_ERROR': {'errorCode': 402, 'message': "无法创建文件,打包失败,请联系管理员"},
-    'PERM_ERROR': {'errorCode': 403, 'message': "无法读取游戏母包, 请设置好访问权限"},
+    'COPY_APK_ERROR': {'errorCode': 401, 'message': "无法创建文件,打包失败,请联系管理员"},
+    'PERM_ERROR': {'errorCode': 402, 'message': "无法读取游戏母包, 请设置好访问权限"},
 
     # 5XX 特殊异常
     'UNKNOWN_ERROR': {'errorCode': 501, 'message': "UNKNOWN_ERROR"},

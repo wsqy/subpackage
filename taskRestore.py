@@ -1,7 +1,7 @@
 # coding:utf-8
 import settings
 import task
-from copy import deepcopy
+import getMyIP
 from subpackageUpload import Upload
 import logging.config
 logging.config.dictConfig(settings.LOGGING)
@@ -11,6 +11,7 @@ logger = logging.getLogger('mylogger')
 class Restore:
     def __init__(self):
         self.retry_upload_count = settings.retry_upload_count
+        self.upload = Upload()
 
     def delete_task_set(self):
         del_key = task.get_task_hand_way("del_key")
@@ -18,6 +19,7 @@ class Restore:
         logger.debug("唯一性任务的集合删除完成...")
 
     def task_resume_upload(self, key=settings.upload_file_schedule_key):
+        key = key + ":" + getMyIP.get_intranet_ip()
         get_task_count = task.get_task_hand_way("get_task_count")
         upload_task_count = get_task_count(key)
         if upload_task_count:
@@ -25,9 +27,7 @@ class Restore:
             for count in range(upload_task_count):
                 up_file = get_task(key)
                 logger.debug(up_file)
-                upload = deepcopy(Upload())
-                logger.debug(id(upload))
-                upload.get_upload_info(up_file)
+                self.upload.get_upload_info(up_file)
         else:
             logger.debug("没有待上传的子包.......")
 
