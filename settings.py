@@ -23,7 +23,7 @@ redis_auth = "nhuWq6vgsEypdZF"
 task_store_key = "6y:apk:subpackage:task"
 task_store_retry_key = "6y:apk:subpackage:retrytask"
 no_task_sleep_time = 3
-sleep_time = 10
+sleep_time = 3
 
 task_schedule_key = "6y:apk:subpackage:task:schedule:task"
 upload_file_schedule_key = "6y:apk:subpackage:task:schedule:uploadfile"
@@ -111,6 +111,15 @@ storage_config = {
 
 # 日志文件夹的根目录
 logging_directory_path = 'log'
+del_log_path = 'log/del'
+
+
+def mkdir_log_path(log_dir):
+    if not os.path.isdir(log_dir):
+        print("创建%s目录" % log_dir)
+        os.makedirs(log_dir)
+
+mkdir_log_path(logging_directory_path)
 
 # 日志配置文件
 def logging_file_path(filename):

@@ -76,14 +76,12 @@ class Upload:
         rem_set(settings.task_execute_key, filename)
 
         logger.info("上传子包%s成功,准备删除子包" % filename)
-        base_dir = os.path.split(os.path.realpath(__file__))[0]
-        file_path = os.path.join(base_dir, filename)
-        logger.debug("子包全路径为:%s" % file_path)
         add_set = task.get_task_hand_way("add_set")
         task_subpackage_set = settings.task_subpackage_set + ":" + getMyIP.get_intranet_ip()
-        add_set(task_subpackage_set, file_path)
-        logger.debug("塞子包%s完成" % file_path)
+        add_set(task_subpackage_set, filename)
+        logger.debug("塞子包%s完成" % filename)
 
+        logger.info("上传子包%s成功,准备通知%s " % (filename, notice_url))
         message = self.initialize_message()
         message.finish_message_notice(notice_url)
 

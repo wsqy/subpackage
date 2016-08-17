@@ -27,5 +27,3 @@ print r.lpush(redis_key, json.dumps(data))
 # print r.rpop("6y:apk:subpackage:task:schedule:uploadfile")
 # print(r.llen("task_store_retry_key"))
 # print r.srem("tset_set", json.dumps(data))
-
-
