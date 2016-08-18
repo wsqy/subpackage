@@ -30,7 +30,7 @@ def chunk_filename(filename):
 def remove_sub():
     status = 1
     log_path = generate_log_filename("del")
-    task_subpackage_set = settings.task_subpackage_set + ":" + getMyIP.get_intranet_ip()
+    task_subpackage_set = settings.task_subpackage_set_prefix + ":" + getMyIP.get_intranet_ip()
     rad_num = task.get_task_hand_way("random_member")
     rem_set = task.get_task_hand_way("rem_set")
     try:

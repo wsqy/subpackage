@@ -18,7 +18,7 @@ class Restore:
         del_key(settings.task_execute_key)
         logger.debug("唯一性任务的集合删除完成...")
 
-    def task_resume_upload(self, key=settings.upload_file_schedule_key):
+    def task_resume_upload(self, key=settings.upload_file_schedule_key_prefix):
         key = key + ":" + getMyIP.get_intranet_ip()
         get_task_count = task.get_task_hand_way("get_task_count")
         upload_task_count = get_task_count(key)

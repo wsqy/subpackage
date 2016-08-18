@@ -3,7 +3,7 @@ import redis
 import json
 import os
 data = {
-    'filename': '2',
+    'filename': '4',
     'channel_id': 1,
     'extend': {
         'channel_version': '0.7',

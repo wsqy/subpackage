@@ -68,7 +68,7 @@ class Upload:
         }
         # 从任务记录中删除待上传记录
         delete_task = task.get_task_hand_way("delete_task")
-        upload_file_schedule_key = settings.upload_file_schedule_key + ":" + getMyIP.get_intranet_ip()
+        upload_file_schedule_key = settings.upload_file_schedule_key_prefix + ":" + getMyIP.get_intranet_ip()
         delete_task(upload_file_schedule_key, response_info)
 
         # 上传成功 从唯一性任务集合中删除
@@ -77,7 +77,7 @@ class Upload:
 
         logger.info("上传子包%s成功,准备删除子包" % filename)
         add_set = task.get_task_hand_way("add_set")
-        task_subpackage_set = settings.task_subpackage_set + ":" + getMyIP.get_intranet_ip()
+        task_subpackage_set = settings.task_subpackage_set_prefix + ":" + getMyIP.get_intranet_ip()
         add_set(task_subpackage_set, filename)
         logger.debug("塞子包%s完成" % filename)
 

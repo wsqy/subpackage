@@ -26,10 +26,10 @@ no_task_sleep_time = 3
 sleep_time = 3
 
 task_schedule_key = "6y:apk:subpackage:task:schedule:task"
-upload_file_schedule_key = "6y:apk:subpackage:task:schedule:uploadfile"
+upload_file_schedule_key_prefix = "6y:apk:subpackage:task:schedule:uploadfile"
 
 task_execute_key = "6y:apk:subpackage:task:execute:set"
-task_subpackage_set = "6y:apk:subpackage:subpackages:set"
+task_subpackage_set_prefix = "6y:apk:subpackage:subpackages:set"
 
 # 基本的打包状态消息
 packageInfo = {

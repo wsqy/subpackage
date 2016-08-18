@@ -1,0 +1,17 @@
+用于存储打包任务的key:
+task_store_key = "6y:apk:subpackage:task"
+
+用于存储重试的打包任务的key
+task_store_retry_key = "6y:apk:subpackage:retrytask"
+
+用于记录打包任务的key（任务恢复需要）
+task_schedule_key = "6y:apk:subpackage:task:schedule:task"
+
+用于恢复上传任务的key（任务恢复需要），会冲突，加prefix
+upload_file_schedule_key_prefix = "6y:apk:subpackage:task:schedule:uploadfile"
+
+用于确保任务唯一性的可以
+task_execute_key = "6y:apk:subpackage:task:execute:set"
+
+用于存储待删除子包的key
+task_subpackage_set_prefix = "6y:apk:subpackage:subpackages:set"

@@ -87,7 +87,7 @@ class SubPackage:
             }
             #  任务恢复: 把response信息扔到 进度uploadfile key里,这里把class转成了dict方便json转换
             push_task = task.get_task_hand_way("push_task")
-            upload_file_schedule_key = settings.upload_file_schedule_key + ":" + getMyIP.get_intranet_ip()
+            upload_file_schedule_key = settings.upload_file_schedule_key_prefix + ":" + getMyIP.get_intranet_ip()
             push_task(upload_file_schedule_key, res)
             upload = self.initialize_upload()
             upload.get_upload_info(res)
