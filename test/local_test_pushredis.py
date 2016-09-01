@@ -3,7 +3,7 @@ import redis
 import json
 import os
 data = {
-    'filename': '4',
+    'filename': '6',
     'channel_id': 1,
     'extend': {
         'channel_version': '0.7',
@@ -15,8 +15,8 @@ data = {
 redis_pool = redis.ConnectionPool(host='121.199.34.235', port=6379, db=0, password="uid")
 r = redis.Redis(connection_pool=redis_pool)
 redis_key = "6y:apk:subpackage:task"
-print r.lpush(redis_key, json.dumps(data))
-
+# print r.lpush(redis_key, json.dumps(data))
+print r.rpop(redis_key)
 # print(r.llen(redis_key))
 # print(r.llen("6y:apk:subpackage:task:schedule:task"))
 # print(r.llen("6y:apk:subpackage:task:schedule:uploadfile"))
