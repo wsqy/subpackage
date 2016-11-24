@@ -82,8 +82,11 @@ class Upload:
         logger.debug("塞子包%s完成" % filename)
 
         logger.info("上传子包%s成功,准备通知%s " % (filename, notice_url))
+        # doing 要求通知中新加&filename=xxxxx
+        basefilename = os.path.basename(filename)
+        new_notice_url = "%s&filename=%s" % (notice_url, basefilename)
         message = self.initialize_message()
-        message.finish_message_notice(notice_url)
+        message.finish_message_notice(new_notice_url)
 
     def upload_cloud(self, conf):
         filename = conf.get("filename")
